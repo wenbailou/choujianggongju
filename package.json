@@ -1,0 +1,11 @@
+{
+  "name": "lottery-tool",
+  "version": "1.0.0",
+  "description": "抽奖工具 - 基于 Netlify Functions 和 Supabase",
+  "scripts": {
+    "build": "echo 'Build completed successfully'"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.4"
+  }
+}
