@@ -868,12 +868,18 @@
                     if (urlTaskId) {
                         const taskId = parseInt(urlTaskId);
                         const targetTask = tasks.find(t => t.id === taskId);
-                        
+
                         if (targetTask) {
                             currentTask = targetTask;
                             document.getElementById('task-title').textContent = currentTask.name;
                             document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
                             await loadPrizesForTask(currentTask);
+                            selector.style.display = 'none';
+                            return;
+                        } else {
+                            // 任务不存在，显示错误提示
+                            document.getElementById('task-title').textContent = '活动不存在或已结束';
+                            document.getElementById('task-subtitle').textContent = '请检查二维码是否正确';
                             selector.style.display = 'none';
                             return;
                         }
@@ -900,12 +906,17 @@
             if (urlTaskId) {
                 const taskId = parseInt(urlTaskId);
                 const targetTask = tasks.find(t => t.id === taskId);
-                
+
                 if (targetTask) {
                     currentTask = targetTask;
                     document.getElementById('task-title').textContent = currentTask.name;
                     document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
                     loadPrizesForTask(currentTask);
+                    selector.style.display = 'none';
+                    return;
+                } else {
+                    document.getElementById('task-title').textContent = '活动不存在或已结束';
+                    document.getElementById('task-subtitle').textContent = '请检查二维码是否正确';
                     selector.style.display = 'none';
                     return;
                 }

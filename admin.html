@@ -864,7 +864,7 @@
             if (isLocalFile) {
                 document.getElementById('qrcode-tip').style.display = 'block';
                 document.getElementById('qrcode-tip').textContent = '⚠️ 当前是本地文件，二维码无法在微信中打开。请部署到 HTTPS 服务器后使用。';
-                baseUrl = 'https://your-domain.com/抽奖.html';
+                baseUrl = 'https://your-domain.com/';
             } else {
                 document.getElementById('qrcode-tip').style.display = 'none';
                 // 获取当前 URL 的基础路径
@@ -873,11 +873,11 @@
                 const adminIndex = currentUrl.indexOf(adminPath);
                 
                 if (adminIndex !== -1) {
-                    baseUrl = currentUrl.substring(0, adminIndex) + '抽奖.html';
+                    baseUrl = currentUrl.substring(0, adminIndex);
                 } else {
                     // 如果找不到 admin.html，尝试其他方式
                     const pathParts = window.location.pathname.split('/');
-                    pathParts[pathParts.length - 1] = '抽奖.html';
+                    pathParts[pathParts.length - 1] = '';
                     baseUrl = window.location.origin + pathParts.join('/');
                 }
             }
@@ -1462,7 +1462,7 @@
         }
 
         function copyTaskLink(taskId, taskName) {
-            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '抽奖.html');
+            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '');
             const taskUrl = `${baseUrl}?taskId=${taskId}`;
             
             navigator.clipboard.writeText(taskUrl).then(() => {
