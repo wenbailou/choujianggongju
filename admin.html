@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后台 - 抽奖管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar .logo {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar .menu {
+            list-style: none;
+            flex: 1;
+        }
+
+        .sidebar .menu li {
+            margin-bottom: 8px;
+        }
+
+        .sidebar .menu li a {
+            display: block;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar .menu li a:hover,
+        .sidebar .menu li a.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar .logout {
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar .logout a {
+            display: block;
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .sidebar .logout a:hover {
+            background: rgba(239, 68, 68, 0.5);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .header .user-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+        }
+
+        .btn-default {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-default:hover {
+            background: #e5e7eb;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .task-stat-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #e8ecf0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .task-stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            border-color: #3b82f6;
+        }
+
+        .task-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .task-stat-header h4 {
+            margin: 0;
+            font-size: 18px;
+            color: #1f2937;
+        }
+
+        .task-stat-header .arrow {
+            font-size: 24px;
+            color: #9ca3af;
+            transition: transform 0.3s ease;
+        }
+
+        .task-stat-card:hover .arrow {
+            transform: translateX(5px);
+            color: #3b82f6;
+        }
+
+        .task-stat-body {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #374151;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th,
+        table td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        table td {
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        table tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .badge-inactive {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .badge-prize {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .badge-winner {
+            background: #ddd6fe;
+            color: #7c3aed;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                min-height: auto;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">🎁 抽奖管理</div>
+        <ul class="menu">
+            <li><a href="#dashboard" class="active" onclick="showTab('dashboard')">📊 数据概览</a></li>
+            <li><a href="#tasks" onclick="showTab('tasks')">📋 抽奖任务</a></li>
+            <li><a href="#prizes" onclick="showTab('prizes')">🎁 奖品管理</a></li>
+            <li><a href="#records" onclick="showTab('records')">📝 抽奖记录</a></li>
+            <li><a href="#settings" onclick="showTab('settings')">⚙️ 系统设置</a></li>
+        </ul>
+        <div class="logout">
+            <a href="admin-login.html" onclick="localStorage.removeItem('adminLoggedIn')">🚪 退出登录</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <h2 id="page-title">数据概览</h2>
+            <div class="user-info">管理员</div>
+        </div>
+
+        <div id="dashboard" class="tab-content">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="value" id="stat-tasks">0</div>
+                    <div class="label">抽奖任务</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-prizes">0</div>
+                    <div class="label">奖品数量</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-records">0</div>
+                    <div class="label">抽奖次数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" id="stat-winners">0</div>
+                    <div class="label">中奖人数</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>最近抽奖记录</h3>
+                    <button class="btn btn-primary" onclick="showTab('records')">查看全部</button>
+                </div>
+                <table id="recent-records">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>手机号</th>
+                            <th>奖品</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="empty-state">暂无数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tasks" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>抽奖任务列表</h3>
+                    <button class="btn btn-primary" onclick="openTaskModal()">+ 创建任务</button>
+                </div>
+                <table id="tasks-table">
+                    <thead>
+                        <tr>
+                            <th>任务名称</th>
+                            <th>奖品数量</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="empty-state">暂无任务</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="prizes" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>奖品管理</h3>
+                    <button class="btn btn-primary" onclick="openPrizeModal()">+ 添加奖品</button>
+                </div>
+                <table id="prizes-table">
+                    <thead>
+                        <tr>
+                            <th>奖品名称</th>
+                            <th>奖品图标</th>
+                            <th>中奖概率</th>
+                            <th>库存</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="6" class="empty-state">暂无奖品</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="records" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>抽奖记录统计</h3>
+                    <button class="btn btn-success" onclick="exportRecords()">📥 导出全部数据</button>
+                </div>
+                <div id="task-stats-container">
+                </div>
+            </div>
+            
+            <div id="task-records-detail" class="card" style="display: none;">
+                <div class="card-header">
+                    <div style="display: flex; align-items: center;">
+                        <button class="btn btn-default" onclick="backToStats()" style="margin-right: 15px;">← 返回统计</button>
+                        <h3 id="detail-task-name">任务详细记录</h3>
+                    </div>
+                    <button class="btn btn-success" onclick="exportCurrentTaskRecords()">📥 导出当前任务数据</button>
+                </div>
+                <table id="records-table">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>手机号</th>
+                            <th>收货地址</th>
+                            <th>奖品</th>
+                            <th>中奖时间</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="7" class="empty-state">暂无记录</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="settings" class="tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3>系统设置</h3>
+                </div>
+                <div class="form-group">
+                    <label>管理员用户名</label>
+                    <input type="text" id="setting-username" placeholder="用户名">
+                </div>
+                <div class="form-group">
+                    <label>管理员密码</label>
+                    <input type="password" id="setting-password" placeholder="密码">
+                </div>
+                <div class="form-group">
+                    <label>每日抽奖次数</label>
+                    <input type="number" id="setting-daily-limit" placeholder="每日抽奖次数">
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="task-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="task-modal-title">创建抽奖任务</h3>
+                <button class="modal-close" onclick="closeModal('task-modal')">×</button>
+            </div>
+            <div class="form-group">
+                <label>任务名称</label>
+                <input type="text" id="task-name" placeholder="请输入任务名称">
+            </div>
+            <div class="form-group">
+                <label>任务描述</label>
+                <textarea id="task-desc" placeholder="请输入任务描述"></textarea>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>开始时间</label>
+                    <input type="datetime-local" id="task-start">
+                </div>
+                <div class="form-group">
+                    <label>结束时间</label>
+                    <input type="datetime-local" id="task-end">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>关联奖品</label>
+                <div id="task-prizes-container" style="max-height: 200px; overflow-y: auto; padding: 10px; background: #f9fafc; border-radius: 8px; border: 1px solid #e8ecf0;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeModal('task-modal')">取消</button>
+                <button class="btn btn-primary" onclick="saveTask()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="prize-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="prize-modal-title">添加奖品</h3>
+                <button class="modal-close" onclick="closeModal('prize-modal')">×</button>
+            </div>
+            <div class="form-group">
+                <label>奖品名称</label>
+                <input type="text" id="prize-name" placeholder="请输入奖品名称">
+            </div>
+            <div class="form-group">
+                <label>奖品图标 (emoji)</label>
+                <input type="text" id="prize-icon" placeholder="如：🎁">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>中奖概率 (%)</label>
+                    <input type="number" id="prize-probability" placeholder="0-100" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label>库存数量</label>
+                    <input type="number" id="prize-stock" placeholder="库存" min="0">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>奖品描述</label>
+                <textarea id="prize-desc" placeholder="请输入奖品描述"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeModal('prize-modal')">取消</button>
+                <button class="btn btn-primary" onclick="savePrize()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="qrcode-modal">
+        <div class="modal-card" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3>活动二维码</h3>
+                <button class="modal-close" onclick="closeModal('qrcode-modal')">×</button>
+            </div>
+            <div style="padding: 20px;">
+                <div id="qrcode-container" style="margin-bottom: 15px;"></div>
+                <p id="qrcode-task-name" style="font-weight: 600; color: #1f2937; margin-bottom: 10px;"></p>
+                <p style="font-size: 12px; color: #6b7280; margin-bottom: 15px;">微信扫码即可参与抽奖</p>
+                <div id="qrcode-tip" style="font-size: 12px; color: #f59e0b; margin-bottom: 15px; display: none;"></div>
+                <button class="btn btn-primary" onclick="downloadQRCode()"> 下载二维码</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        let tasks = [];
+        let prizes = [];
+        let records = [];
+        let editingTaskId = null;
+        let editingPrizeId = null;
+        let currentQRCodeDataUrl = null;
+        
+        // 后端API地址（使用相对路径，部署后自动适配域名）
+        const API_BASE = '/api';
+
+        async function initData() {
+            // 尝试从后端获取数据
+            await loadDataFromAPI();
+            
+            // 如果后端不可用，使用本地存储
+            if (tasks.length === 0) {
+                tasks = JSON.parse(localStorage.getItem('lotteryTasks') || '[]');
+            }
+            if (prizes.length === 0) {
+                prizes = JSON.parse(localStorage.getItem('lotteryPrizes') || '[]');
+            }
+            if (records.length === 0) {
+                records = JSON.parse(localStorage.getItem('lotteryRecords') || '[]');
+            }
+            
+            // 如果还是没有数据，使用默认数据
+            if (prizes.length === 0) {
+                prizes = [
+                    { id: 1, name: '一等奖 999元现金红包', icon: '💰', probability: 5, stock: 10, desc: '999元现金红包', status: 'active' },
+                    { id: 2, name: '二等奖 50元话费', icon: '📱', probability: 10, stock: 50, desc: '50元手机话费', status: 'active' },
+                    { id: 3, name: '三等奖 20元优惠券', icon: '🎫', probability: 15, stock: 100, desc: '20元优惠券', status: 'active' },
+                    { id: 4, name: '四等奖 精美礼品一份', icon: '🎁', probability: 20, stock: 200, desc: '精美礼品一份', status: 'active' },
+                    { id: 5, name: '谢谢参与', icon: '😊', probability: 50, stock: 9999, desc: '谢谢参与', status: 'active' }
+                ];
+            }
+
+            if (tasks.length === 0) {
+                tasks = [
+                    { id: 1, name: '五一惊喜出行季', desc: '五一劳动节抽奖活动', startDate: '2026-05-01T00:00', endDate: '2026-05-31T23:59', prizeIds: [1,2,3,4,5], status: 'active', createdAt: new Date().toISOString() }
+                ];
+            }
+
+            updateStats();
+            renderTasks();
+            renderPrizes();
+            renderRecords();
+            renderRecentRecords();
+        }
+        
+        // 从后端加载数据
+        async function loadDataFromAPI() {
+            try {
+                const [tasksRes, prizesRes, recordsRes] = await Promise.all([
+                    fetch(`${API_BASE}/tasks`),
+                    fetch(`${API_BASE}/prizes`),
+                    fetch(`${API_BASE}/records`)
+                ]);
+                
+                const tasksResult = await tasksRes.json();
+                const prizesResult = await prizesRes.json();
+                const recordsResult = await recordsRes.json();
+                
+                if (tasksResult.success && tasksResult.data.length > 0) {
+                    tasks = tasksResult.data;
+                }
+                if (prizesResult.success && prizesResult.data.length > 0) {
+                    prizes = prizesResult.data;
+                }
+                if (recordsResult.success && recordsResult.data.length > 0) {
+                    records = recordsResult.data;
+                }
+                
+                console.log('数据已从后端加载');
+            } catch (error) {
+                console.error('从后端加载数据失败:', error);
+            }
+        }
+
+        function showQRCode(taskId, taskName) {
+            // 检查是否是本地文件访问
+            const isLocalFile = window.location.protocol === 'file:';
+            
+            // 更可靠的链接生成方式
+            let baseUrl;
+            if (isLocalFile) {
+                document.getElementById('qrcode-tip').style.display = 'block';
+                document.getElementById('qrcode-tip').textContent = '⚠️ 当前是本地文件，二维码无法在微信中打开。请部署到 HTTPS 服务器后使用。';
+                baseUrl = 'https://your-domain.com/抽奖.html';
+            } else {
+                document.getElementById('qrcode-tip').style.display = 'none';
+                // 获取当前 URL 的基础路径
+                const currentUrl = window.location.href;
+                const adminPath = 'admin.html';
+                const adminIndex = currentUrl.indexOf(adminPath);
+                
+                if (adminIndex !== -1) {
+                    baseUrl = currentUrl.substring(0, adminIndex) + '抽奖.html';
+                } else {
+                    // 如果找不到 admin.html，尝试其他方式
+                    const pathParts = window.location.pathname.split('/');
+                    pathParts[pathParts.length - 1] = '抽奖.html';
+                    baseUrl = window.location.origin + pathParts.join('/');
+                }
+            }
+            
+            const taskUrl = `${baseUrl}?taskId=${taskId}`;
+            
+            document.getElementById('qrcode-task-name').textContent = taskName;
+            document.getElementById('qrcode-container').innerHTML = '<div style="padding: 40px;">生成中...</div>';
+            
+            if (typeof QRCode === 'undefined') {
+                generateQRCodeFallback(taskUrl);
+                return;
+            }
+            
+            QRCode.toDataURL(taskUrl, {
+                width: 250,
+                height: 250,
+                margin: 2,
+                color: {
+                    dark: '#3b82f6',
+                    light: '#ffffff'
+                }
+            }).then(url => {
+                currentQRCodeDataUrl = url;
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.width = '250px';
+                img.style.height = '250px';
+                img.style.borderRadius = '8px';
+                img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                document.getElementById('qrcode-container').innerHTML = '';
+                document.getElementById('qrcode-container').appendChild(img);
+                openModal('qrcode-modal');
+            }).catch(err => {
+                generateQRCodeFallback(taskUrl);
+            });
+        }
+
+        function generateQRCodeFallback(url) {
+            const safeUrl = encodeURIComponent(url);
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${safeUrl}`;
+            
+            const img = document.createElement('img');
+            img.src = qrUrl;
+            img.style.width = '250px';
+            img.style.height = '250px';
+            img.style.borderRadius = '8px';
+            img.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+            img.onload = function() {
+                currentQRCodeDataUrl = this.src;
+                document.getElementById('qrcode-container').innerHTML = '';
+                document.getElementById('qrcode-container').appendChild(img);
+                openModal('qrcode-modal');
+            };
+            img.onerror = function() {
+                alert('二维码生成失败，请检查网络连接');
+                document.getElementById('qrcode-container').innerHTML = '<div style="padding: 40px;">生成失败</div>';
+            };
+        }
+
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.sidebar .menu li a').forEach(a => a.classList.remove('active'));
+            document.getElementById(tabId).style.display = 'block';
+            document.querySelector(`.sidebar .menu li a[href="#${tabId}"]`).classList.add('active');
+            
+            const titles = {
+                'dashboard': '数据概览',
+                'tasks': '抽奖任务',
+                'prizes': '奖品管理',
+                'records': '抽奖记录',
+                'settings': '系统设置'
+            };
+            document.getElementById('page-title').textContent = titles[tabId];
+
+            if (tabId === 'settings') {
+                loadSettings();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stat-tasks').textContent = tasks.length;
+            document.getElementById('stat-prizes').textContent = prizes.length;
+            document.getElementById('stat-records').textContent = records.length;
+            document.getElementById('stat-winners').textContent = records.filter(r => r.prize !== '谢谢参与').length;
+        }
+
+        function renderTasks() {
+            const tbody = document.querySelector('#tasks-table tbody');
+            if (tasks.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">暂无任务</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = tasks.map(task => `
+                <tr>
+                    <td>${task.name}</td>
+                    <td>${task.prizeIds.length} 个</td>
+                    <td><span class="badge ${task.status === 'active' ? 'badge-active' : 'badge-inactive'}">${task.status === 'active' ? '进行中' : '已结束'}</span></td>
+                    <td>${formatDate(task.createdAt)}</td>
+                    <td>
+                        <button class="btn btn-info" style="padding: 5px 10px; font-size: 12px;" onclick="copyTaskLink(${task.id}, '${task.name}')">📋 复制链接</button>
+                        <button class="btn btn-warning" style="padding: 5px 10px; font-size: 12px;" onclick="showQRCode(${task.id}, '${task.name}')">📱 二维码</button>
+                        <button class="btn btn-success" style="padding: 5px 10px; font-size: 12px;" onclick="exportTaskRecords(${task.id}, '${task.name}')">导出</button>
+                        <button class="btn btn-default" style="padding: 5px 10px; font-size: 12px;" onclick="editTask(${task.id})">编辑</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteTask(${task.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderPrizes() {
+            const tbody = document.querySelector('#prizes-table tbody');
+            if (prizes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">暂无奖品</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = prizes.map(prize => `
+                <tr>
+                    <td>${prize.name}</td>
+                    <td style="font-size: 20px;">${prize.icon}</td>
+                    <td>${prize.probability}%</td>
+                    <td>${prize.stock}</td>
+                    <td><span class="badge ${prize.status === 'active' ? 'badge-active' : 'badge-inactive'}">${prize.status === 'active' ? '启用' : '禁用'}</span></td>
+                    <td>
+                        <button class="btn btn-default" style="padding: 5px 10px; font-size: 12px;" onclick="editPrize(${prize.id})">编辑</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deletePrize(${prize.id})">删除</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        let currentViewTaskId = null;
+
+        function renderRecords() {
+            renderTaskStats();
+        }
+
+        function renderTaskStats() {
+            const container = document.getElementById('task-stats-container');
+            
+            document.getElementById('task-records-detail').style.display = 'none';
+            
+            if (records.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">暂无抽奖记录</div>';
+                return;
+            }
+            
+            const taskStats = {};
+            records.forEach(record => {
+                const recordTaskId = record.taskId;
+                const recordTaskName = record.taskName;
+                
+                let taskId = 'unknown';
+                let taskName = '未知任务';
+                
+                if (recordTaskId !== null && recordTaskId !== undefined && recordTaskId !== 0) {
+                    taskId = Number(recordTaskId);
+                    
+                    const matchedTask = tasks.find(t => t.id === taskId);
+                    if (matchedTask) {
+                        taskName = matchedTask.name;
+                    } else if (recordTaskName) {
+                        // 如果找不到任务，但有任务名称，使用记录中的名称
+                        taskName = recordTaskName;
+                    }
+                } else if (recordTaskName) {
+                    // 处理默认任务或没有任务ID的情况
+                    taskId = recordTaskId === 0 ? 'default' : 'unknown';
+                    taskName = recordTaskName;
+                }
+                
+                if (!taskStats[taskId]) {
+                    taskStats[taskId] = {
+                        id: taskId,
+                        name: taskName,
+                        total: 0,
+                        winners: 0,
+                        shipped: 0
+                    };
+                }
+                
+                taskStats[taskId].total++;
+                if (record.prize !== '谢谢参与') {
+                    taskStats[taskId].winners++;
+                }
+                if (record.shipped) {
+                    taskStats[taskId].shipped++;
+                }
+            });
+            
+            const statsHtml = Object.values(taskStats).map(stat => `
+                <div class="task-stat-card" onclick="showTaskRecords(${stat.id})">
+                    <div class="task-stat-header">
+                        <h4>${stat.name}</h4>
+                        <span class="arrow">›</span>
+                    </div>
+                    <div class="task-stat-body">
+                        <div class="stat-item">
+                            <span class="stat-value">${stat.total}</span>
+                            <span class="stat-label">总抽奖次数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${stat.winners}</span>
+                            <span class="stat-label">中奖人数</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">${stat.shipped}</span>
+                            <span class="stat-label">已发货</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            container.innerHTML = statsHtml;
+        }
+
+        function showTaskRecords(taskId) {
+            currentViewTaskId = taskId;
+            const numericTaskId = Number(taskId);
+            
+            let taskName = '未知任务';
+            
+            // 首先尝试从任务列表中查找
+            const task = tasks.find(t => t.id === numericTaskId);
+            if (task) {
+                taskName = task.name;
+            } else {
+                // 如果找不到任务，从记录中查找任务名称
+                const recordWithName = records.find(r => {
+                    if (taskId === 'unknown') {
+                        return r.taskId === null || r.taskId === undefined || r.taskId === 'unknown' || r.taskId === 0;
+                    }
+                    return Number(r.taskId) === numericTaskId;
+                });
+                if (recordWithName && recordWithName.taskName) {
+                    taskName = recordWithName.taskName;
+                }
+            }
+            
+            document.getElementById('detail-task-name').textContent = `${taskName} - 详细记录`;
+            document.querySelector('#records .card:first-child').style.display = 'none';
+            document.getElementById('task-records-detail').style.display = 'block';
+            
+            const taskRecords = records.filter(r => {
+                if (taskId === 'unknown') {
+                    return r.taskId === null || r.taskId === undefined || r.taskId === 'unknown' || r.taskId === 0;
+                }
+                return Number(r.taskId) === numericTaskId;
+            });
+            const tbody = document.querySelector('#records-table tbody');
+            
+            if (taskRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">该任务暂无记录</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = taskRecords.map((record, index) => {
+                const globalIndex = records.findIndex(r => r.id === record.id);
+                return `
+                    <tr>
+                        <td>${record.name}</td>
+                        <td>${record.phone}</td>
+                        <td title="${record.address}">${record.address.length > 20 ? record.address.substring(0, 20) + '...' : record.address}</td>
+                        <td><span class="badge ${record.prize === '谢谢参与' ? 'badge-default' : 'badge-prize'}">${record.prize}</span></td>
+                        <td>${formatDate(record.createdAt)}</td>
+                        <td><span class="badge ${record.shipped ? 'badge-success' : 'badge-winner'}">${record.shipped ? '已发货' : '待发货'}</span></td>
+                        <td>
+                            <button class="btn btn-${record.shipped ? 'default' : 'success'}" style="padding: 5px 10px; font-size: 12px;" onclick="toggleShipped(${globalIndex})">${record.shipped ? '撤销' : '标记发货'}</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function backToStats() {
+            document.querySelector('#records .card:first-child').style.display = 'block';
+            document.getElementById('task-records-detail').style.display = 'none';
+            currentViewTaskId = null;
+        }
+
+        function exportCurrentTaskRecords() {
+            if (currentViewTaskId === null) {
+                alert('请先选择一个任务');
+                return;
+            }
+            
+            const taskRecords = records.filter(r => r.taskId === currentViewTaskId);
+            const task = tasks.find(t => t.id === currentViewTaskId);
+            const taskName = task ? task.name : '未知任务';
+            
+            if (taskRecords.length === 0) {
+                alert('该任务暂无数据可导出');
+                return;
+            }
+            
+            const header = ['姓名', '手机号', '收货地址', '奖品', '中奖时间', '发货状态'];
+            const rows = taskRecords.map(r => [
+                r.name,
+                r.phone,
+                r.address,
+                r.prize,
+                formatDate(r.createdAt),
+                r.shipped ? '已发货' : '待发货'
+            ]);
+            
+            const csv = [header.join(','), ...rows.map(row => row.join(','))].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${taskName}_抽奖记录_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.csv`;
+            link.click();
+        }
+
+        function renderRecentRecords() {
+            const tbody = document.querySelector('#recent-records tbody');
+            const recent = records.slice(-5).reverse();
+            if (recent.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty-state">暂无数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = recent.map(record => `
+                <tr>
+                    <td>${record.name}</td>
+                    <td>${record.phone}</td>
+                    <td><span class="badge ${record.prize === '谢谢参与' ? 'badge-default' : 'badge-prize'}">${record.prize}</span></td>
+                    <td>${formatDate(record.createdAt)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+
+        function downloadQRCode() {
+            if (!currentQRCodeDataUrl) {
+                alert('请先生成二维码');
+                return;
+            }
+            
+            const link = document.createElement('a');
+            link.href = currentQRCodeDataUrl;
+            link.download = `抽奖活动二维码_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.png`;
+            link.click();
+        }
+
+        function openTaskModal(taskId = null) {
+            editingTaskId = taskId;
+            const modal = document.getElementById('task-modal');
+            
+            if (taskId) {
+                const task = tasks.find(t => t.id === taskId);
+                document.getElementById('task-modal-title').textContent = '编辑抽奖任务';
+                document.getElementById('task-name').value = task.name;
+                document.getElementById('task-desc').value = task.desc;
+                document.getElementById('task-start').value = task.startDate;
+                document.getElementById('task-end').value = task.endDate;
+            } else {
+                document.getElementById('task-modal-title').textContent = '创建抽奖任务';
+                document.getElementById('task-name').value = '';
+                document.getElementById('task-desc').value = '';
+                document.getElementById('task-start').value = '';
+                document.getElementById('task-end').value = '';
+            }
+            
+            populatePrizeSelect();
+            modal.classList.add('show');
+        }
+
+        function populatePrizeSelect() {
+            const container = document.getElementById('task-prizes-container');
+            
+            if (prizes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">暂无奖品，请先添加奖品</p>';
+                return;
+            }
+            
+            const selectedIds = editingTaskId ? tasks.find(t => t.id === editingTaskId)?.prizeIds || [] : [];
+            
+            container.innerHTML = prizes.map(p => `
+                <label style="display: flex; align-items: center; padding: 8px 12px; margin-bottom: 4px; border-radius: 6px; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='#e8ecf0'" onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" name="prize-checkbox" value="${p.id}" ${selectedIds.includes(p.id) ? 'checked' : ''} style="margin-right: 10px; width: 16px; height: 16px;">
+                    <span style="font-size: 16px;">${p.icon}</span>
+                    <span style="margin-left: 8px;">${p.name}</span>
+                </label>
+            `).join('');
+        }
+
+        async function saveTask() {
+            const name = document.getElementById('task-name').value.trim();
+            const desc = document.getElementById('task-desc').value.trim();
+            const startDate = document.getElementById('task-start').value;
+            const endDate = document.getElementById('task-end').value;
+            const checkboxes = document.querySelectorAll('input[name="prize-checkbox"]:checked');
+            const prizeIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (!name) {
+                alert('请输入任务名称');
+                return;
+            }
+
+            let savedTask;
+            if (editingTaskId) {
+                const index = tasks.findIndex(t => t.id === editingTaskId);
+                tasks[index] = {
+                    ...tasks[index],
+                    name, desc, startDate, endDate, prizeIds
+                };
+                savedTask = tasks[index];
+                
+                // 尝试保存到后端
+                try {
+                    await fetch(`${API_BASE}/tasks/${editingTaskId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(savedTask)
+                    });
+                } catch (error) {
+                    console.error('保存任务到后端失败:', error);
+                }
+            } else {
+                savedTask = {
+                    id: Date.now(),
+                    name, desc, startDate, endDate, prizeIds,
+                    status: 'active',
+                    createdAt: new Date().toISOString()
+                };
+                tasks.push(savedTask);
+                
+                // 尝试保存到后端
+                try {
+                    const response = await fetch(`${API_BASE}/tasks`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(savedTask)
+                    });
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        savedTask.id = result.data.id;
+                        tasks[tasks.length - 1].id = result.data.id;
+                    }
+                } catch (error) {
+                    console.error('保存任务到后端失败:', error);
+                }
+            }
+
+            localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
+            closeModal('task-modal');
+            renderTasks();
+            updateStats();
+        }
+
+        function editTask(taskId) {
+            openTaskModal(taskId);
+        }
+
+        function deleteTask(taskId) {
+            if (confirm('确定要删除这个任务吗？')) {
+                tasks = tasks.filter(t => t.id !== taskId);
+                localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
+                renderTasks();
+                updateStats();
+            }
+        }
+
+        function openPrizeModal(prizeId = null) {
+            editingPrizeId = prizeId;
+            const modal = document.getElementById('prize-modal');
+            
+            if (prizeId) {
+                const prize = prizes.find(p => p.id === prizeId);
+                document.getElementById('prize-modal-title').textContent = '编辑奖品';
+                document.getElementById('prize-name').value = prize.name;
+                document.getElementById('prize-icon').value = prize.icon;
+                document.getElementById('prize-probability').value = prize.probability;
+                document.getElementById('prize-stock').value = prize.stock;
+                document.getElementById('prize-desc').value = prize.desc;
+            } else {
+                document.getElementById('prize-modal-title').textContent = '添加奖品';
+                document.getElementById('prize-name').value = '';
+                document.getElementById('prize-icon').value = '';
+                document.getElementById('prize-probability').value = '';
+                document.getElementById('prize-stock').value = '';
+                document.getElementById('prize-desc').value = '';
+            }
+            
+            modal.classList.add('show');
+        }
+
+        function savePrize() {
+            const name = document.getElementById('prize-name').value.trim();
+            const icon = document.getElementById('prize-icon').value.trim();
+            const probability = parseFloat(document.getElementById('prize-probability').value);
+            const stock = parseInt(document.getElementById('prize-stock').value);
+            const desc = document.getElementById('prize-desc').value.trim();
+
+            if (!name) {
+                alert('请输入奖品名称');
+                return;
+            }
+            if (!icon) {
+                alert('请输入奖品图标');
+                return;
+            }
+            if (isNaN(probability) || probability < 0 || probability > 100) {
+                alert('请输入有效的中奖概率 (0-100)');
+                return;
+            }
+            if (isNaN(stock) || stock < 0) {
+                alert('请输入有效的库存数量');
+                return;
+            }
+
+            if (editingPrizeId) {
+                const index = prizes.findIndex(p => p.id === editingPrizeId);
+                prizes[index] = {
+                    ...prizes[index],
+                    name, icon, probability, stock, desc
+                };
+            } else {
+                const newPrize = {
+                    id: Date.now(),
+                    name, icon, probability, stock, desc,
+                    status: 'active'
+                };
+                prizes.push(newPrize);
+            }
+
+            localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
+            closeModal('prize-modal');
+            renderPrizes();
+            updateStats();
+        }
+
+        function editPrize(prizeId) {
+            openPrizeModal(prizeId);
+        }
+
+        function deletePrize(prizeId) {
+            if (confirm('确定要删除这个奖品吗？')) {
+                prizes = prizes.filter(p => p.id !== prizeId);
+                localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
+                renderPrizes();
+                updateStats();
+            }
+        }
+
+        function toggleShipped(index) {
+            records[index].shipped = !records[index].shipped;
+            localStorage.setItem('lotteryRecords', JSON.stringify(records));
+            renderRecords();
+        }
+
+        function exportRecords() {
+            if (records.length === 0) {
+                alert('暂无数据可导出');
+                return;
+            }
+
+            const header = ['姓名', '手机号', '收货地址', '奖品', '中奖时间', '发货状态'];
+            const rows = records.map(r => [
+                r.name,
+                r.phone,
+                r.address,
+                r.prize,
+                formatDate(r.createdAt),
+                r.shipped ? '已发货' : '待发货'
+            ]);
+
+            const csv = [header.join(','), ...rows.map(row => row.join(','))].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `抽奖记录_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.csv`;
+            link.click();
+        }
+
+        function copyTaskLink(taskId, taskName) {
+            const baseUrl = window.location.origin + window.location.pathname.replace('admin.html', '抽奖.html');
+            const taskUrl = `${baseUrl}?taskId=${taskId}`;
+            
+            navigator.clipboard.writeText(taskUrl).then(() => {
+                alert(`活动链接已复制到剪贴板！\n\n链接：${taskUrl}`);
+            }).catch(err => {
+                const textarea = document.createElement('textarea');
+                textarea.value = taskUrl;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert(`活动链接已复制到剪贴板！\n\n链接：${taskUrl}`);
+            });
+        }
+
+        function exportTaskRecords(taskId, taskName) {
+            const taskRecords = records.filter(r => r.taskId === taskId);
+            
+            if (taskRecords.length === 0) {
+                alert(`${taskName} 暂无抽奖记录`);
+                return;
+            }
+
+            const header = ['姓名', '手机号', '收货地址', '奖品', '中奖时间', '发货状态'];
+            const rows = taskRecords.map(r => [
+                r.name,
+                r.phone,
+                r.address,
+                r.prize,
+                formatDate(r.createdAt),
+                r.shipped ? '已发货' : '待发货'
+            ]);
+
+            const csv = [header.join(','), ...rows.map(row => row.join(','))].join('\n');
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            const safeName = taskName.replace(/[\\/:*?"<>|]/g, '_');
+            link.download = `${safeName}_抽奖记录_${new Date().toLocaleDateString('zh-CN').replace(/\//g, '-')}.csv`;
+            link.click();
+        }
+
+        function loadSettings() {
+            const adminData = JSON.parse(localStorage.getItem('adminData') || '{"username":"admin","password":"admin123"}');
+            const settings = JSON.parse(localStorage.getItem('systemSettings') || '{"dailyLimit":3}');
+            
+            document.getElementById('setting-username').value = adminData.username;
+            document.getElementById('setting-password').value = adminData.password;
+            document.getElementById('setting-daily-limit').value = settings.dailyLimit;
+        }
+
+        function saveSettings() {
+            const username = document.getElementById('setting-username').value.trim();
+            const password = document.getElementById('setting-password').value.trim();
+            const dailyLimit = parseInt(document.getElementById('setting-daily-limit').value);
+
+            if (!username) {
+                alert('请输入用户名');
+                return;
+            }
+            if (!password) {
+                alert('请输入密码');
+                return;
+            }
+            if (isNaN(dailyLimit) || dailyLimit < 1) {
+                alert('请输入有效的每日抽奖次数');
+                return;
+            }
+
+            localStorage.setItem('adminData', JSON.stringify({ username, password }));
+            localStorage.setItem('systemSettings', JSON.stringify({ dailyLimit }));
+            alert('设置保存成功');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            editingTaskId = null;
+            editingPrizeId = null;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!localStorage.getItem('adminLoggedIn')) {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+            initData();
+        });
+
+        window.onclick = function(event) {
+            const overlays = document.querySelectorAll('.modal-overlay');
+            overlays.forEach(overlay => {
+                if (event.target === overlay) {
+                    overlay.classList.remove('show');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

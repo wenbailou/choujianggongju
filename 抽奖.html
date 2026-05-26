@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>幸运大抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .background-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: floatParticle 15s infinite;
+        }
+
+        @keyframes floatParticle {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.3; }
+            50% { transform: translateY(-100px) rotate(180deg); opacity: 0.8; }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 1s ease;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header .title {
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, #ffd700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .header .subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .gacha-section {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeInUp 1s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gacha-section.active {
+            display: flex;
+        }
+
+        .gacha-machine-container {
+            position: relative;
+            width: 320px;
+            height: 380px;
+            margin-bottom: 30px;
+        }
+
+        .machine-base {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 80px;
+            background: linear-gradient(180deg, #e74c3c 0%, #c0392b 100%);
+            border-radius: 15px 15px 30px 30px;
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.5);
+        }
+
+        .machine-base::before,
+        .machine-base::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            border-radius: 50%;
+            top: 20px;
+            box-shadow: 0 4px 15px rgba(241, 196, 15, 0.6);
+        }
+
+        .machine-base::before {
+            left: -25px;
+        }
+
+        .machine-base::after {
+            right: -25px;
+        }
+
+        .machine-globe {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 40%, rgba(255, 255, 255, 0.3) 70%, rgba(255, 255, 255, 0.1) 100%);
+            border: 6px solid #ffd700;
+            box-shadow: 
+                0 0 60px rgba(255, 215, 0, 0.6),
+                inset 0 0 80px rgba(255, 255, 255, 0.5),
+                0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .machine-globe::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 20%;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+        }
+
+        .gacha-ball {
+            position: absolute;
+            border-radius: 50%;
+            animation: ballFloat 3s ease-in-out infinite;
+            border: 3px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .gacha-ball:nth-child(1) { 
+            width: 50px; height: 50px; 
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.3) 0%, rgba(238, 90, 90, 0.5) 50%, rgba(255, 107, 107, 0.7) 100%); 
+            left: 15%; top: 20%; 
+            animation-delay: 0s; 
+            box-shadow: inset 0 0 20px rgba(255, 107, 107, 0.5), 0 0 15px rgba(255, 107, 107, 0.3);
+        }
+        .gacha-ball:nth-child(2) { 
+            width: 45px; height: 45px; 
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.3) 0%, rgba(68, 163, 160, 0.5) 50%, rgba(78, 205, 196, 0.7) 100%); 
+            left: 60%; top: 25%; 
+            animation-delay: 0.5s; 
+            box-shadow: inset 0 0 18px rgba(78, 205, 196, 0.5), 0 0 12px rgba(78, 205, 196, 0.3);
+        }
+        .gacha-ball:nth-child(3) { 
+            width: 55px; height: 55px; 
+            background: linear-gradient(135deg, rgba(255, 230, 109, 0.3) 0%, rgba(255, 217, 61, 0.5) 50%, rgba(255, 230, 109, 0.7) 100%); 
+            left: 35%; top: 55%; 
+            animation-delay: 1s; 
+            box-shadow: inset 0 0 22px rgba(255, 217, 61, 0.5), 0 0 18px rgba(255, 217, 61, 0.3);
+        }
+        .gacha-ball:nth-child(4) { 
+            width: 48px; height: 48px; 
+            background: linear-gradient(135deg, rgba(168, 85, 247, 0.3) 0%, rgba(147, 51, 234, 0.5) 50%, rgba(168, 85, 247, 0.7) 100%); 
+            left: 65%; top: 58%; 
+            animation-delay: 1.5s; 
+            box-shadow: inset 0 0 20px rgba(168, 85, 247, 0.5), 0 0 14px rgba(168, 85, 247, 0.3);
+        }
+        .gacha-ball:nth-child(5) { 
+            width: 52px; height: 52px; 
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.3) 0%, rgba(59, 130, 246, 0.5) 50%, rgba(96, 165, 250, 0.7) 100%); 
+            left: 25%; top: 60%; 
+            animation-delay: 2s; 
+            box-shadow: inset 0 0 20px rgba(96, 165, 250, 0.5), 0 0 16px rgba(96, 165, 250, 0.3);
+        }
+        .gacha-ball:nth-child(6) { 
+            width: 46px; height: 46px; 
+            background: linear-gradient(135deg, rgba(244, 114, 182, 0.3) 0%, rgba(236, 72, 153, 0.5) 50%, rgba(244, 114, 182, 0.7) 100%); 
+            left: 50%; top: 35%; 
+            animation-delay: 2.5s; 
+            box-shadow: inset 0 0 18px rgba(244, 114, 182, 0.5), 0 0 13px rgba(244, 114, 182, 0.3);
+        }
+
+        @keyframes ballFloat {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(1.08); }
+        }
+
+        .machine-globe.spinning {
+            animation: globeSpin 0.3s linear infinite;
+        }
+
+        @keyframes globeSpin {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        .gacha-ball.spinning {
+            animation: ballSpin 0.2s linear infinite !important;
+        }
+
+        @keyframes ballSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .spin-button {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 55px;
+            background: linear-gradient(180deg, #ffd700 0%, #ff9500 100%);
+            border: none;
+            border-radius: 30px;
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.6);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateX(-50%) scale(1.08);
+            box-shadow: 0 12px 35px rgba(255, 215, 0, 0.8);
+        }
+
+        .spin-button:active:not(:disabled) {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-item {
+            text-align: center;
+            color: #fff;
+        }
+
+        .info-item .label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffd700;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 18px 60px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(102, 126, 234, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(102, 126, 234, 0.7); }
+        }
+
+        .start-button:hover {
+            transform: scale(1.08);
+            box-shadow: 0 15px 50px rgba(102, 126, 234, 0.7);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background: linear-gradient(135deg, #fff 0%, #f8f9ff 100%);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.8) translateY(50px);
+            transition: all 0.4s ease;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-header h2 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f9fafb;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .form-group .error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .form-group.error input,
+        .form-group.error textarea {
+            border-color: #ef4444;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .form-group.error .error {
+            display: block;
+        }
+
+        .submit-button {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            padding: 16px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: #f3f4f6;
+            color: #333;
+        }
+
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .result-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #ffd700 0%, #ff9500 100%);
+            border-radius: 30px;
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+            transform: scale(0.5) translateY(100px);
+            transition: all 0.5s ease;
+            box-shadow: 0 30px 80px rgba(255, 215, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-overlay.show .result-card {
+            transform: scale(1) translateY(0);
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(25%, 25%); }
+        }
+
+        .result-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            animation: bounceIn 0.6s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .result-title {
+            font-size: 28px;
+            font-weight: 900;
+            color: #fff;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-prize {
+            font-size: 22px;
+            color: #fff;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-close {
+            background: #fff;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .result-close:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            top: -20px;
+            z-index: 3000;
+            animation: confettiFall linear forwards;
+        }
+
+        @keyframes confettiFall {
+            0% { 
+                transform: translateY(0) rotate(0deg); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translateY(100vh) rotate(1080deg); 
+                opacity: 0; 
+            }
+        }
+
+        .rules-modal .modal-card {
+            max-width: 450px;
+        }
+
+        .rules-content {
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .rules-content h4 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .rules-content ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-content li {
+            color: #555;
+            font-size: 15px;
+            line-height: 2;
+            padding-left: 25px;
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .rules-content li::before {
+            content: '✦';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .rules-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .rules-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: none;
+            z-index: 10;
+        }
+
+        .user-info.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-particles" id="particles"></div>
+
+    <div class="main-container">
+        <div class="header">
+            <h1 class="title" id="task-title">幸运大抽奖</h1>
+            <p class="subtitle" id="task-subtitle">最高赢取 999元 现金大奖</p>
+            <div class="task-selector" id="task-selector" style="display: none; margin-top: 15px;">
+                <select id="task-select" style="padding: 10px 16px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 14px; backdrop-filter: blur(10px);">
+                </select>
+            </div>
+        </div>
+
+        <button class="start-button" id="start-btn">立即参与</button>
+
+        <div class="gacha-section" id="gacha-section">
+            <div class="prizes-preview" id="prizes-preview" style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 15px; backdrop-filter: blur(10px); display: none;">
+                <h4 style="color: white; font-size: 14px; margin-bottom: 10px; text-align: center;">奖品池</h4>
+                <div id="prizes-list" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
+            </div>
+            <div class="gacha-machine-container">
+                <div class="machine-globe" id="globe">
+                    <div class="gacha-ball" id="ball1"></div>
+                    <div class="gacha-ball" id="ball2"></div>
+                    <div class="gacha-ball" id="ball3"></div>
+                    <div class="gacha-ball" id="ball4"></div>
+                    <div class="gacha-ball" id="ball5"></div>
+                    <div class="gacha-ball" id="ball6"></div>
+                </div>
+                <div class="machine-base">
+                    <button class="spin-button" id="spin-btn">
+                        <span>抽奖</span>
+                        <span>🎁</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-item">
+                    <div class="label">剩余次数</div>
+                    <div class="value" id="remaining-count">3</div>
+                </div>
+                <div class="info-item">
+                    <div class="label">累计抽奖</div>
+                    <div class="value" id="total-count">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="rules-btn" id="rules-btn">📋 活动规则</button>
+    <div class="user-info" id="user-info"></div>
+
+    <div class="modal-overlay" id="form-modal">
+        <div class="modal-card">
+            <button class="close-modal" id="close-form">×</button>
+            <div class="modal-header">
+                <h2>填写信息</h2>
+                <p>请完善以下信息以参与抽奖</p>
+            </div>
+            <div class="form-group">
+                <label>姓名</label>
+                <input type="text" id="name" placeholder="请输入您的姓名">
+                <div class="error" id="name-error">请输入姓名</div>
+            </div>
+            <div class="form-group">
+                <label>手机号</label>
+                <input type="tel" id="phone" placeholder="请输入您的手机号">
+                <div class="error" id="phone-error">请输入正确的手机号</div>
+            </div>
+            <div class="form-group">
+                <label>收货地址</label>
+                <textarea id="address" placeholder="请输入您的收货地址"></textarea>
+                <div class="error" id="address-error">请输入收货地址</div>
+            </div>
+            <button class="submit-button" id="submit-form">开始抽奖</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay rules-modal" id="rules-modal">
+        <div class="modal-card">
+            <button class="close-modal" id="close-rules">×</button>
+            <div class="modal-header">
+                <h2>活动规则</h2>
+            </div>
+            <div class="rules-content">
+                <ul>
+                    <li>用户需填写姓名、手机号、收货地址等信息后方可参与抽奖</li>
+                    <li>每位用户每日可抽奖3次</li>
+                    <li>奖品将在活动结束后7个工作日内发放</li>
+                    <li>中奖信息将通过短信通知</li>
+                    <li>活动最终解释权归主办方所有</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card">
+            <div class="result-icon" id="result-icon">🎉</div>
+            <h2 class="result-title" id="result-title">恭喜中奖！</h2>
+            <p class="result-prize" id="result-prize"></p>
+            <button class="result-close" id="result-close">确定</button>
+        </div>
+    </div>
+
+    <script>
+        let prizes = [
+            { name: '一等奖 999元现金红包', icon: '💰', probability: 0.05, title: '超级大奖！' },
+            { name: '二等奖 50元话费', icon: '📱', probability: 0.1, title: '恭喜中奖！' },
+            { name: '三等奖 20元优惠券', icon: '🎫', probability: 0.15, title: '恭喜中奖！' },
+            { name: '四等奖 精美礼品一份', icon: '🎁', probability: 0.2, title: '恭喜中奖！' },
+            { name: '谢谢参与', icon: '😊', probability: 0.5, title: '再接再厉！' }
+        ];
+
+        let tasks = [];
+        let currentTask = null;
+        let remainingCount = 3;
+        let totalCount = 0;
+        let isSpinning = false;
+        let userInfo = null;
+        
+        // 后端API地址（使用相对路径，部署后自动适配域名）
+        const API_BASE = '/api';
+
+        function getUrlParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        // 从后端获取任务数据
+        async function loadTasks() {
+            const urlTaskId = getUrlParam('taskId');
+            const selector = document.getElementById('task-selector');
+            
+            try {
+                // 尝试从后端获取任务数据
+                const response = await fetch(`${API_BASE}/tasks`);
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    tasks = result.data.filter(t => t.status === 'active');
+                    
+                    // 优先根据URL参数查找任务
+                    if (urlTaskId) {
+                        const taskId = parseInt(urlTaskId);
+                        const targetTask = tasks.find(t => t.id === taskId);
+                        
+                        if (targetTask) {
+                            currentTask = targetTask;
+                            document.getElementById('task-title').textContent = currentTask.name;
+                            document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                            await loadPrizesForTask(currentTask);
+                            selector.style.display = 'none';
+                            return;
+                        }
+                    }
+                    
+                    // 使用第一个任务
+                    currentTask = tasks[0];
+                    document.getElementById('task-title').textContent = currentTask.name;
+                    document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                    await loadPrizesForTask(currentTask);
+                    selector.style.display = 'none';
+                    return;
+                }
+            } catch (error) {
+                console.error('从后端获取任务失败:', error);
+            }
+            
+            // 如果后端不可用，使用本地存储
+            const savedTasks = localStorage.getItem('lotteryTasks');
+            if (savedTasks) {
+                tasks = JSON.parse(savedTasks).filter(t => t.status === 'active');
+            }
+            
+            if (urlTaskId) {
+                const taskId = parseInt(urlTaskId);
+                const targetTask = tasks.find(t => t.id === taskId);
+                
+                if (targetTask) {
+                    currentTask = targetTask;
+                    document.getElementById('task-title').textContent = currentTask.name;
+                    document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                    loadPrizesForTask(currentTask);
+                    selector.style.display = 'none';
+                    return;
+                }
+            }
+            
+            if (tasks.length > 0) {
+                currentTask = tasks[0];
+                document.getElementById('task-title').textContent = currentTask.name;
+                document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                loadPrizesForTask(currentTask);
+                selector.style.display = 'none';
+            } else {
+                currentTask = {
+                    id: urlTaskId ? parseInt(urlTaskId) : 0,
+                    name: urlTaskId ? '活动抽奖' : '幸运大抽奖',
+                    desc: '参与抽奖赢取大奖',
+                    prizeIds: []
+                };
+                document.getElementById('task-title').textContent = currentTask.name;
+                document.getElementById('task-subtitle').textContent = currentTask.desc;
+                loadDefaultPrizes();
+            }
+        }
+
+        async function loadPrizesForTask(task) {
+            if (!task || !task.id) {
+                loadDefaultPrizes();
+                updatePrizesPreview();
+                return;
+            }
+            
+            try {
+                // 尝试从后端获取任务奖品
+                const response = await fetch(`${API_BASE}/lottery/${task.id}/prizes`);
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.prizes && result.data.prizes.length > 0) {
+                    prizes = result.data.prizes.map(p => ({
+                        name: p.name,
+                        icon: p.icon,
+                        probability: p.probability / 100,
+                        title: p.name.includes('奖') ? '恭喜中奖！' : '再接再厉！'
+                    }));
+                    normalizeProbabilities();
+                    updatePrizesPreview();
+                    return;
+                }
+            } catch (error) {
+                console.error('从后端获取奖品失败:', error);
+            }
+            
+            // 如果后端不可用，使用本地存储
+            const savedPrizes = localStorage.getItem('lotteryPrizes');
+            if (savedPrizes && task && task.prizeIds && task.prizeIds.length > 0) {
+                const allPrizes = JSON.parse(savedPrizes);
+                const taskPrizes = allPrizes.filter(p => 
+                    p.status === 'active' && 
+                    task.prizeIds.includes(Number(p.id))
+                );
+                
+                if (taskPrizes.length > 0) {
+                    prizes = taskPrizes.map(p => ({
+                        name: p.name,
+                        icon: p.icon,
+                        probability: p.probability / 100,
+                        title: p.name.includes('奖') ? '恭喜中奖！' : '再接再厉！'
+                    }));
+                    normalizeProbabilities();
+                } else {
+                    loadDefaultPrizes();
+                }
+            } else {
+                loadDefaultPrizes();
+            }
+            updatePrizesPreview();
+        }
+
+        function loadDefaultPrizes() {
+            const savedPrizes = localStorage.getItem('lotteryPrizes');
+            if (savedPrizes) {
+                const parsed = JSON.parse(savedPrizes);
+                const activePrizes = parsed.filter(p => p.status === 'active');
+                if (activePrizes.length > 0) {
+                    prizes = activePrizes.map(p => ({
+                        name: p.name,
+                        icon: p.icon,
+                        probability: p.probability / 100,
+                        title: p.name.includes('奖') ? '恭喜中奖！' : '再接再厉！'
+                    }));
+                    normalizeProbabilities();
+                }
+            }
+            updatePrizesPreview();
+        }
+
+        function normalizeProbabilities() {
+            const sum = prizes.reduce((acc, p) => acc + p.probability, 0);
+            if (sum !== 1) {
+                prizes.forEach(p => {
+                    p.probability = p.probability / sum;
+                });
+            }
+        }
+
+        function updatePrizesPreview() {
+            const preview = document.getElementById('prizes-preview');
+            const list = document.getElementById('prizes-list');
+            
+            if (prizes.length > 0) {
+                preview.style.display = 'block';
+                list.innerHTML = prizes.map(p => `
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 18px;">${p.icon}</span>
+                        <div>
+                            <div style="color: white; font-size: 12px; font-weight: 600;">${p.name}</div>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                preview.style.display = 'none';
+            }
+        }
+
+        function loadDailyLimit() {
+            const settings = localStorage.getItem('systemSettings');
+            if (settings) {
+                const parsed = JSON.parse(settings);
+                return parsed.dailyLimit || 3;
+            }
+            return 3;
+        }
+
+        function checkDailyCount() {
+            const today = new Date().toDateString();
+            const dailyData = localStorage.getItem('dailyLotteryData');
+            let todayCount = 0;
+            
+            if (dailyData) {
+                const parsed = JSON.parse(dailyData);
+                if (parsed.date === today) {
+                    todayCount = parsed.count;
+                }
+            }
+            
+            const dailyLimit = loadDailyLimit();
+            remainingCount = dailyLimit - todayCount;
+            document.getElementById('remaining-count').textContent = remainingCount;
+        }
+
+        function saveDailyCount() {
+            const today = new Date().toDateString();
+            const dailyData = localStorage.getItem('dailyLotteryData');
+            let count = 1;
+            
+            if (dailyData) {
+                const parsed = JSON.parse(dailyData);
+                if (parsed.date === today) {
+                    count = parsed.count + 1;
+                }
+            }
+            
+            localStorage.setItem('dailyLotteryData', JSON.stringify({ date: today, count }));
+        }
+
+        async function saveRecord(prize) {
+            if (!userInfo) return;
+            
+            const record = {
+                name: userInfo.name,
+                phone: userInfo.phone,
+                address: userInfo.address,
+                prize: prize.name,
+                taskId: currentTask && currentTask.id ? Number(currentTask.id) : null,
+                taskName: currentTask && currentTask.name ? currentTask.name : '默认任务',
+                shipped: false
+            };
+            
+            // 先尝试保存到后端
+            try {
+                const response = await fetch(`${API_BASE}/records`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(record)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log('记录已保存到后端');
+                }
+            } catch (error) {
+                console.error('保存到后端失败:', error);
+            }
+            
+            // 同时保存到本地存储
+            const records = JSON.parse(localStorage.getItem('lotteryRecords') || '[]');
+            record.id = Date.now();
+            record.createdAt = new Date().toISOString();
+            records.push(record);
+            localStorage.setItem('lotteryRecords', JSON.stringify(records));
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.width = Math.random() * 10 + 5 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = Math.random() * 10 + 10 + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        function drawPrize() {
+            const random = Math.random();
+            let cumulative = 0;
+            for (const prize of prizes) {
+                cumulative += prize.probability;
+                if (random <= cumulative) {
+                    return prize;
+                }
+            }
+            return prizes[prizes.length - 1];
+        }
+
+        function validateForm() {
+            let isValid = true;
+            
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const address = document.getElementById('address').value.trim();
+
+            document.getElementById('name').parentElement.classList.remove('error');
+            document.getElementById('phone').parentElement.classList.remove('error');
+            document.getElementById('address').parentElement.classList.remove('error');
+
+            if (!name) {
+                document.getElementById('name').parentElement.classList.add('error');
+                isValid = false;
+            }
+
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                document.getElementById('phone').parentElement.classList.add('error');
+                isValid = false;
+            }
+
+            if (!address) {
+                document.getElementById('address').parentElement.classList.add('error');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function createConfetti() {
+            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#A855F7', '#60A5FA', '#FF9500', '#FF1493'];
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.width = Math.random() * 12 + 6 + 'px';
+                confetti.style.height = confetti.style.width;
+                confetti.style.animationDuration = Math.random() * 2 + 2 + 's';
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 4000);
+            }
+        }
+
+        document.getElementById('start-btn').addEventListener('click', function() {
+            document.getElementById('form-modal').classList.add('show');
+        });
+
+        document.getElementById('close-form').addEventListener('click', function() {
+            document.getElementById('form-modal').classList.remove('show');
+        });
+
+        document.getElementById('submit-form').addEventListener('click', function() {
+            if (!validateForm()) {
+                return;
+            }
+
+            userInfo = {
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim()
+            };
+
+            document.getElementById('form-modal').classList.remove('show');
+            document.getElementById('start-btn').style.display = 'none';
+            document.getElementById('gacha-section').classList.add('active');
+            document.getElementById('user-info').textContent = userInfo.name;
+            document.getElementById('user-info').classList.add('show');
+        });
+
+        document.getElementById('spin-btn').addEventListener('click', function() {
+            if (isSpinning) return;
+            if (remainingCount <= 0) {
+                alert('抽奖次数已用完！');
+                return;
+            }
+
+            isSpinning = true;
+            const globe = document.getElementById('globe');
+            
+            globe.classList.add('spinning');
+            
+            document.querySelectorAll('.gacha-ball').forEach(ball => {
+                ball.classList.add('spinning');
+            });
+
+            setTimeout(() => {
+                const prize = drawPrize();
+                remainingCount--;
+                totalCount++;
+                document.getElementById('remaining-count').textContent = remainingCount;
+                document.getElementById('total-count').textContent = totalCount;
+
+                globe.classList.remove('spinning');
+                
+                document.querySelectorAll('.gacha-ball').forEach(ball => {
+                    ball.classList.remove('spinning');
+                });
+
+                isSpinning = false;
+
+                saveDailyCount();
+                saveRecord(prize);
+
+                document.getElementById('result-icon').textContent = prize.icon;
+                document.getElementById('result-title').textContent = prize.title;
+                document.getElementById('result-prize').textContent = prize.name;
+                document.getElementById('result-overlay').classList.add('show');
+
+                if (prize.probability < 0.2) {
+                    createConfetti();
+                }
+            }, 3000);
+        });
+
+        document.getElementById('result-close').addEventListener('click', function() {
+            document.getElementById('result-overlay').classList.remove('show');
+        });
+
+        document.getElementById('rules-btn').addEventListener('click', function() {
+            document.getElementById('rules-modal').classList.add('show');
+        });
+
+        document.getElementById('close-rules').addEventListener('click', function() {
+            document.getElementById('rules-modal').classList.remove('show');
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTasks();
+            checkDailyCount();
+            createParticles();
+        });
+    </script>
+</body>
+</html>
