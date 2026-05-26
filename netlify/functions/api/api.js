@@ -3,7 +3,11 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+let supabase = null;
+
+if (supabaseUrl && supabaseKey) {
+    supabase = createClient(supabaseUrl, supabaseKey);
+}
 
 function jsonResponse(statusCode, data) {
     return {
@@ -27,6 +31,17 @@ exports.handler = async (event, context) => {
     const pathParts = path.split('/').filter(p => p);
     
     try {
+        if (pathParts[0] === 'health') {
+            if (!supabase) {
+                return jsonResponse(500, { success: false, message: 'Database not configured' });
+            }
+            return jsonResponse(200, { success: true, message: 'Server is running!' });
+        }
+
+        if (!supabase) {
+            return jsonResponse(500, { success: false, message: 'Database not configured' });
+        }
+
         if (pathParts[0] === 'tasks') {
             if (httpMethod === 'GET') {
                 if (pathParts[1]) {
@@ -287,10 +302,6 @@ exports.handler = async (event, context) => {
                 
                 return jsonResponse(200, { success: true, data: { task, prizes } });
             }
-        }
-
-        if (pathParts[0] === 'health') {
-            return jsonResponse(200, { success: true, message: 'Server is running!' });
         }
 
         return jsonResponse(404, { success: false, message: 'Endpoint not found' });
