@@ -1,8 +1,0 @@
-{
-  "name": "lottery-api",
-  "version": "1.0.0",
-  "description": "抽奖工具后端API",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.38.4"
-  }
-}
