@@ -1073,7 +1073,14 @@
             
             const dailyLimit = loadDailyLimit();
             remainingCount = dailyLimit - todayCount;
+            
+            // 如果计算后次数为负，重置为0
+            if (remainingCount < 0) {
+                remainingCount = 0;
+            }
+            
             document.getElementById('remaining-count').textContent = remainingCount;
+            console.log('Daily count check:', { today, todayCount, dailyLimit, remainingCount });
         }
 
         function saveDailyCount() {
