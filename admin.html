@@ -1342,6 +1342,8 @@
 
             localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
             closeModal('task-modal');
+            // 从后端重新加载数据，确保ID正确
+            await loadDataFromAPI();
             renderTasks();
             updateStats();
         }
