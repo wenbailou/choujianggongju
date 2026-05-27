@@ -185,14 +185,14 @@ exports.handler = async (event, context) => {
                             icon: prizeData.icon,
                             probability: prizeData.probability,
                             stock: prizeData.stock,
-                            description: prizeData.desc,
+                            description: prizeData.description || prizeData.desc,
                             status: 'active'
                         }])
                         .single();
                     if (error) return jsonResponse(500, { success: false, message: 'Failed to create prize' });
                     return jsonResponse(200, { success: true, data });
                 }
-                const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.desc, status: 'active' };
+                const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: 'active' };
                 prizes.push(newPrize);
                 return jsonResponse(200, { success: true, data: newPrize });
             }
@@ -203,7 +203,7 @@ exports.handler = async (event, context) => {
                 if (supabase) {
                     const { data, error } = await supabase
                         .from('prizes')
-                        .update({ name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.desc, status: prizeData.status })
+                        .update({ name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: prizeData.status })
                         .eq('id', prizeId)
                         .single();
                     if (error) return jsonResponse(500, { success: false, message: 'Failed to update prize' });
@@ -211,7 +211,7 @@ exports.handler = async (event, context) => {
                 }
                 const prizeIndex = prizes.findIndex(p => p.id === prizeId);
                 if (prizeIndex === -1) return jsonResponse(404, { success: false, message: 'Prize not found' });
-                prizes[prizeIndex] = { ...prizes[prizeIndex], name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.desc, status: prizeData.status };
+                prizes[prizeIndex] = { ...prizes[prizeIndex], name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: prizeData.status };
                 return jsonResponse(200, { success: true, data: prizes[prizeIndex] });
             }
             
