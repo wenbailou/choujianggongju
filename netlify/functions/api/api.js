@@ -25,6 +25,13 @@ let taskIdCounter = 1;
 let prizeIdCounter = 1;
 let recordIdCounter = 1;
 
+// 获取当前北京时间（UTC+8）
+function getBeijingTime() {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    return new Date(utc + 8 * 3600000);
+}
+
 function jsonResponse(statusCode, data) {
     return {
         statusCode: statusCode,
@@ -97,6 +104,7 @@ exports.handler = async (event, context) => {
                 console.log('Received task data:', taskData);
                 console.log('Supabase client:', supabase ? 'initialized' : 'not initialized');
                 
+                const beijingTime = getBeijingTime();
                 const newTask = {
                     id: Date.now(),
                     name: taskData.name,
@@ -105,7 +113,7 @@ exports.handler = async (event, context) => {
                     end_date: taskData.endDate,
                     prize_ids: taskData.prizeIds || [],
                     status: 'active',
-                    created_at: new Date().toISOString()
+                    created_at: beijingTime.toISOString()
                 };
                 
                 if (supabase) {
@@ -118,7 +126,7 @@ exports.handler = async (event, context) => {
                             end_date: taskData.endDate,
                             prize_ids: taskData.prizeIds || [],
                             status: 'active',
-                            created_at: new Date().toISOString()
+                            created_at: beijingTime.toISOString()
                         }]);
                     console.log('Insert result:', { error });
                     if (error) {
@@ -194,6 +202,7 @@ exports.handler = async (event, context) => {
                     status: 'active'
                 };
                 
+                const prizeBeijingTime = getBeijingTime();
                 if (supabase) {
                     const { error } = await supabase
                         .from('prizes')
@@ -203,7 +212,8 @@ exports.handler = async (event, context) => {
                             probability: prizeData.probability,
                             stock: prizeData.stock,
                             description: prizeData.description || prizeData.desc,
-                            status: 'active'
+                            status: 'active',
+                            created_at: prizeBeijingTime.toISOString()
                         }]);
                     
                     console.log('Insert result:', { error });
@@ -267,6 +277,7 @@ exports.handler = async (event, context) => {
             
             if (httpMethod === 'POST') {
                 const recordData = JSON.parse(body);
+                const recordBeijingTime = getBeijingTime();
                 if (supabase) {
                     const { data, error } = await supabase
                         .from('records')
@@ -277,14 +288,14 @@ exports.handler = async (event, context) => {
                             prize: recordData.prize,
                             task_id: recordData.taskId,
                             task_name: recordData.taskName,
-                            created_at: new Date().toISOString(),
+                            created_at: recordBeijingTime.toISOString(),
                             shipped: false
                         }])
                         .single();
                     if (error) return jsonResponse(500, { success: false, message: 'Failed to create record' });
                     return jsonResponse(200, { success: true, data });
                 }
-                const newRecord = { id: recordIdCounter++, name: recordData.name, phone: recordData.phone, address: recordData.address, prize: recordData.prize, task_id: recordData.taskId, task_name: recordData.taskName, created_at: new Date().toISOString(), shipped: false };
+                const newRecord = { id: recordIdCounter++, name: recordData.name, phone: recordData.phone, address: recordData.address, prize: recordData.prize, task_id: recordData.taskId, task_name: recordData.taskName, created_at: recordBeijingTime.toISOString(), shipped: false };
                 records.push(newRecord);
                 return jsonResponse(200, { success: true, data: newRecord });
             }
@@ -369,10 +380,11 @@ exports.handler = async (event, context) => {
                         }
                     } else {
                         // 确保有正确的字段结构
+                        const settingsBeijingTime = getBeijingTime();
                         const insertData = {
                             dailyLimit: settingsData.dailyLimit || 3,
-                            created_at: new Date().toISOString(),
-                            updated_at: new Date().toISOString()
+                            created_at: settingsBeijingTime.toISOString(),
+                            updated_at: settingsBeijingTime.toISOString()
                         };
                         console.log('Inserting settings:', insertData);
                         const { error } = await supabase.from('settings').insert([insertData]);
