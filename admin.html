@@ -1646,8 +1646,20 @@
             link.click();
         }
 
-        function loadSettings() {
+        async function loadSettings() {
             const adminData = JSON.parse(localStorage.getItem('adminData') || '{"username":"admin","password":"admin123"}');
+            
+            // 从后端加载系统设置
+            try {
+                const response = await fetch(`${API_BASE}/settings`);
+                const result = await response.json();
+                if (result.success && result.data) {
+                    localStorage.setItem('systemSettings', JSON.stringify(result.data));
+                }
+            } catch (error) {
+                console.error('加载系统设置失败:', error);
+            }
+            
             const settings = JSON.parse(localStorage.getItem('systemSettings') || '{"dailyLimit":3}');
             
             document.getElementById('setting-username').value = adminData.username;
@@ -1655,7 +1667,7 @@
             document.getElementById('setting-daily-limit').value = settings.dailyLimit;
         }
 
-        function saveSettings() {
+        async function saveSettings() {
             const username = document.getElementById('setting-username').value.trim();
             const password = document.getElementById('setting-password').value.trim();
             const dailyLimit = parseInt(document.getElementById('setting-daily-limit').value);
@@ -1673,9 +1685,26 @@
                 return;
             }
 
+            // 保存到本地
             localStorage.setItem('adminData', JSON.stringify({ username, password }));
             localStorage.setItem('systemSettings', JSON.stringify({ dailyLimit }));
-            alert('设置保存成功');
+            
+            // 同时保存到后端数据库
+            try {
+                const response = await fetch(`${API_BASE}/settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dailyLimit })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert('设置保存成功');
+                } else {
+                    alert('本地保存成功，但后端保存失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                alert('本地保存成功，但后端保存失败: ' + error.message);
+            }
         }
 
         function openModal(modalId) {

@@ -340,6 +340,93 @@ exports.handler = async (event, context) => {
             }
         }
 
+        if (pathParts[0] === 'settings') {
+            if (httpMethod === 'GET') {
+                if (supabase) {
+                    const { data, error } = await supabase.from('settings').select('*').single();
+                    if (error || !data) {
+                        return jsonResponse(200, { success: true, data: { dailyLimit: 3 } });
+                    }
+                    return jsonResponse(200, { success: true, data });
+                }
+                return jsonResponse(200, { success: true, data: { dailyLimit: 3 } });
+            }
+            
+            if (httpMethod === 'POST') {
+                const settingsData = JSON.parse(body);
+                if (supabase) {
+                    const { data: existing, error: selectError } = await supabase.from('settings').select('*').single();
+                    if (existing) {
+                        const { error } = await supabase.from('settings').update(settingsData).eq('id', existing.id);
+                        if (error) return jsonResponse(500, { success: false, message: 'Failed to update settings' });
+                    } else {
+                        const { error } = await supabase.from('settings').insert([settingsData]);
+                        if (error) return jsonResponse(500, { success: false, message: 'Failed to create settings' });
+                    }
+                    return jsonResponse(200, { success: true, data: settingsData });
+                }
+                return jsonResponse(200, { success: true, data: settingsData });
+            }
+        }
+        
+        if (pathParts[0] === 'daily-count') {
+            if (httpMethod === 'GET') {
+                const { phone } = JSON.parse(body || '{}');
+                if (!phone) return jsonResponse(400, { success: false, message: 'Phone number is required' });
+                
+                const today = new Date().toISOString().split('T')[0];
+                
+                if (supabase) {
+                    const { data, error } = await supabase
+                        .from('daily_counts')
+                        .select('count')
+                        .eq('phone', phone)
+                        .eq('date', today)
+                        .single();
+                    
+                    if (error || !data) {
+                        return jsonResponse(200, { success: true, data: { count: 0 } });
+                    }
+                    return jsonResponse(200, { success: true, data: { count: data.count } });
+                }
+                return jsonResponse(200, { success: true, data: { count: 0 } });
+            }
+            
+            if (httpMethod === 'POST') {
+                const { phone } = JSON.parse(body || '{}');
+                if (!phone) return jsonResponse(400, { success: false, message: 'Phone number is required' });
+                
+                const today = new Date().toISOString().split('T')[0];
+                
+                if (supabase) {
+                    // 先查询今日记录
+                    const { data: existing, error: selectError } = await supabase
+                        .from('daily_counts')
+                        .select('*')
+                        .eq('phone', phone)
+                        .eq('date', today)
+                        .single();
+                    
+                    if (existing) {
+                        // 更新计数
+                        const { error } = await supabase
+                            .from('daily_counts')
+                            .update({ count: existing.count + 1 })
+                            .eq('id', existing.id);
+                        if (error) return jsonResponse(500, { success: false, message: 'Failed to update count' });
+                    } else {
+                        // 插入新记录
+                        const { error } = await supabase
+                            .from('daily_counts')
+                            .insert([{ phone, date: today, count: 1 }]);
+                        if (error) return jsonResponse(500, { success: false, message: 'Failed to create count' });
+                    }
+                    return jsonResponse(200, { success: true, message: 'Count updated' });
+                }
+                return jsonResponse(200, { success: true, message: 'Count updated' });
+            }
+        }
+        
         return jsonResponse(404, { success: false, message: 'Endpoint not found' });
 
     } catch (error) {

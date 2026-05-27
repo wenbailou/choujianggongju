@@ -1079,7 +1079,20 @@
             }
         }
 
-        function loadDailyLimit() {
+        async function loadDailyLimit() {
+            // 先尝试从后端加载
+            try {
+                const response = await fetch(`${API_BASE}/settings`);
+                const result = await response.json();
+                if (result.success && result.data && result.data.dailyLimit) {
+                    localStorage.setItem('systemSettings', JSON.stringify(result.data));
+                    return result.data.dailyLimit;
+                }
+            } catch (error) {
+                console.error('从后端加载设置失败:', error);
+            }
+            
+            // 回退到本地存储
             const settings = localStorage.getItem('systemSettings');
             if (settings) {
                 const parsed = JSON.parse(settings);
@@ -1088,28 +1101,43 @@
             return 3;
         }
 
-        function checkDailyCount() {
+        async function checkDailyCount() {
             const today = new Date().toDateString();
-            const dailyData = localStorage.getItem('dailyLotteryData');
             let todayCount = 0;
             
-            if (dailyData) {
+            // 从后端获取今日抽奖次数
+            const phone = localStorage.getItem('lotteryPhone');
+            if (phone) {
                 try {
-                    const parsed = JSON.parse(dailyData);
-                    // 检查日期是否是今天，并且count是有效的数字
-                    if (parsed.date === today && typeof parsed.count === 'number' && parsed.count >= 0) {
-                        todayCount = parsed.count;
-                    } else {
-                        // 数据无效，清除缓存
-                        localStorage.removeItem('dailyLotteryData');
+                    const response = await fetch(`${API_BASE}/daily-count`, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone })
+                    });
+                    const result = await response.json();
+                    if (result.success && result.data) {
+                        todayCount = result.data.count || 0;
                     }
-                } catch {
-                    // JSON解析失败，清除缓存
-                    localStorage.removeItem('dailyLotteryData');
+                } catch (error) {
+                    console.error('从后端获取抽奖次数失败:', error);
+                    // 回退到本地存储
+                    const dailyData = localStorage.getItem('dailyLotteryData');
+                    if (dailyData) {
+                        try {
+                            const parsed = JSON.parse(dailyData);
+                            if (parsed.date === today && typeof parsed.count === 'number' && parsed.count >= 0) {
+                                todayCount = parsed.count;
+                            } else {
+                                localStorage.removeItem('dailyLotteryData');
+                            }
+                        } catch {
+                            localStorage.removeItem('dailyLotteryData');
+                        }
+                    }
                 }
             }
             
-            const dailyLimit = loadDailyLimit();
+            const dailyLimit = await loadDailyLimit();
             remainingCount = dailyLimit - todayCount;
             
             // 确保次数在合理范围内
@@ -1121,7 +1149,7 @@
             document.getElementById('remaining-count').textContent = remainingCount;
         }
 
-        function saveDailyCount() {
+        async function saveDailyCount() {
             const today = new Date().toDateString();
             const dailyData = localStorage.getItem('dailyLotteryData');
             let count = 1;
@@ -1133,7 +1161,22 @@
                 }
             }
             
+            // 保存到本地
             localStorage.setItem('dailyLotteryData', JSON.stringify({ date: today, count }));
+            
+            // 同时保存到后端数据库
+            const phone = localStorage.getItem('lotteryPhone');
+            if (phone) {
+                try {
+                    await fetch(`${API_BASE}/daily-count`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone })
+                    });
+                } catch (error) {
+                    console.error('保存抽奖次数到后端失败:', error);
+                }
+            }
         }
 
         async function saveRecord(prize) {
@@ -1276,7 +1319,7 @@
             document.getElementById('user-info').classList.add('show');
         });
 
-        document.getElementById('spin-btn').addEventListener('click', function() {
+        document.getElementById('spin-btn').addEventListener('click', async function() {
             if (isSpinning) return;
             if (remainingCount <= 0) {
                 alert('抽奖次数已用完！');
@@ -1292,7 +1335,7 @@
                 ball.classList.add('spinning');
             });
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const prize = drawPrize();
                 remainingCount--;
                 totalCount++;
@@ -1307,7 +1350,7 @@
 
                 isSpinning = false;
 
-                saveDailyCount();
+                await saveDailyCount();
                 saveRecord(prize);
 
                 document.getElementById('result-icon').textContent = getEmoji(prize.icon);
@@ -1333,9 +1376,9 @@
             document.getElementById('rules-modal').classList.remove('show');
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             loadTasks();
-            checkDailyCount();
+            await checkDailyCount();
             createParticles();
         });
     </script>
