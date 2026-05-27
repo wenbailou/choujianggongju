@@ -93,8 +93,20 @@ exports.handler = async (event, context) => {
                 const taskData = JSON.parse(body);
                 console.log('Received task data:', taskData);
                 console.log('Supabase client:', supabase ? 'initialized' : 'not initialized');
+                
+                const newTask = {
+                    id: Date.now(),
+                    name: taskData.name,
+                    description: taskData.desc,
+                    start_date: taskData.startDate,
+                    end_date: taskData.endDate,
+                    prize_ids: taskData.prizeIds || [],
+                    status: 'active',
+                    created_at: new Date().toISOString()
+                };
+                
                 if (supabase) {
-                    const { data, error } = await supabase
+                    const { error } = await supabase
                         .from('tasks')
                         .insert([{
                             name: taskData.name,
@@ -104,26 +116,16 @@ exports.handler = async (event, context) => {
                             prize_ids: taskData.prizeIds || [],
                             status: 'active',
                             created_at: new Date().toISOString()
-                        }])
-                        .single();
-                    console.log('Insert result:', { data, error });
+                        }]);
+                    console.log('Insert result:', { error });
                     if (error) {
                         console.error('Supabase insert error:', error);
                         return jsonResponse(500, { success: false, message: 'Failed to create task: ' + error.message });
                     }
-                    return jsonResponse(200, { success: true, data });
+                } else {
+                    tasks.push(newTask);
                 }
-                const newTask = {
-                    id: taskIdCounter++,
-                    name: taskData.name,
-                    description: taskData.desc,
-                    start_date: taskData.startDate,
-                    end_date: taskData.endDate,
-                    prize_ids: taskData.prizeIds || [],
-                    status: 'active',
-                    created_at: new Date().toISOString()
-                };
-                tasks.push(newTask);
+                
                 return jsonResponse(200, { success: true, data: newTask });
             }
             
@@ -179,9 +181,18 @@ exports.handler = async (event, context) => {
                 const prizeData = JSON.parse(body);
                 console.log('Creating prize with data:', prizeData);
                 
+                const newPrize = {
+                    id: Date.now(),
+                    name: prizeData.name,
+                    icon: prizeData.icon,
+                    probability: prizeData.probability,
+                    stock: prizeData.stock,
+                    description: prizeData.description || prizeData.desc,
+                    status: 'active'
+                };
+                
                 if (supabase) {
-                    // 使用 .select() 让插入操作返回插入的数据
-                    const { data, error } = await supabase
+                    const { error } = await supabase
                         .from('prizes')
                         .insert([{
                             name: prizeData.name,
@@ -190,38 +201,18 @@ exports.handler = async (event, context) => {
                             stock: prizeData.stock,
                             description: prizeData.description || prizeData.desc,
                             status: 'active'
-                        }])
-                        .select();
+                        }]);
                     
-                    console.log('Insert result:', { data, error });
+                    console.log('Insert result:', { error });
                     
                     if (error) {
                         console.error('Insert error:', error);
                         return jsonResponse(500, { success: false, message: 'Failed to create prize: ' + error.message });
                     }
-                    
-                    // 如果返回了数据，取第一条
-                    if (data && data.length > 0) {
-                        return jsonResponse(200, { success: true, data: data[0] });
-                    } else {
-                        // 如果没有返回数据，返回基本信息（模拟数据）
-                        console.log('No data returned from insert, returning simulated data');
-                        return jsonResponse(200, { 
-                            success: true, 
-                            data: {
-                                id: Date.now(),
-                                name: prizeData.name,
-                                icon: prizeData.icon,
-                                probability: prizeData.probability,
-                                stock: prizeData.stock,
-                                description: prizeData.description || prizeData.desc,
-                                status: 'active'
-                            }
-                        });
-                    }
+                } else {
+                    prizes.push(newPrize);
                 }
-                const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: 'active' };
-                prizes.push(newPrize);
+                
                 return jsonResponse(200, { success: true, data: newPrize });
             }
             
