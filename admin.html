@@ -1708,7 +1708,7 @@
             // 同时保存到后端数据库
             try {
                 const response = await fetch(`${API_BASE}/settings`, {
-                    method: 'POST',
+                    method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ dailyLimit })
                 });
@@ -1719,7 +1719,22 @@
                     alert('本地保存成功，但后端保存失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                alert('本地保存成功，但后端保存失败: ' + error.message);
+                // 如果 PUT 失败，尝试 POST（兼容创建新设置）
+                try {
+                    const response = await fetch(`${API_BASE}/settings`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ dailyLimit })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('设置保存成功');
+                    } else {
+                        alert('本地保存成功，但后端保存失败: ' + (result.message || '未知错误'));
+                    }
+                } catch (postError) {
+                    alert('本地保存成功，但后端保存失败: ' + postError.message);
+                }
             }
         }
 
