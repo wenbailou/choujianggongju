@@ -196,11 +196,10 @@ exports.handler = async (event, context) => {
                         .from('prizes')
                         .select('*')
                         .order('id', { ascending: false })
-                        .limit(1)
-                        .single();
+                        .limit(1);
                     
                     if (selectError) return jsonResponse(500, { success: false, message: 'Failed to retrieve created prize: ' + selectError.message });
-                    return jsonResponse(200, { success: true, data: insertedData });
+                    return jsonResponse(200, { success: true, data: insertedData && insertedData.length > 0 ? insertedData[0] : null });
                 }
                 const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: 'active' };
                 prizes.push(newPrize);
