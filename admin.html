@@ -1544,10 +1544,36 @@
             }
         }
 
-        function toggleShipped(index) {
-            records[index].shipped = !records[index].shipped;
-            localStorage.setItem('lotteryRecords', JSON.stringify(records));
-            renderRecords();
+        async function toggleShipped(index) {
+            const record = records[index];
+            const newShipped = !record.shipped;
+            
+            try {
+                // 先调用后端API更新数据库中的发货状态
+                if (record.id) {
+                    const response = await fetch(`${API_BASE}/records/${record.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ shipped: newShipped })
+                    });
+                    const result = await response.json();
+                    
+                    if (!result.success) {
+                        alert('本地更新成功，但后端更新失败: ' + (result.message || '未知错误'));
+                    }
+                }
+                
+                // 更新本地数据
+                record.shipped = newShipped;
+                localStorage.setItem('lotteryRecords', JSON.stringify(records));
+                renderRecords();
+            } catch (error) {
+                // 如果API调用失败，至少更新本地数据
+                record.shipped = newShipped;
+                localStorage.setItem('lotteryRecords', JSON.stringify(records));
+                renderRecords();
+                alert('本地更新成功，但后端更新失败: ' + error.message);
+            }
         }
 
         function exportRecords() {
