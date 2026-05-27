@@ -1396,12 +1396,32 @@
             openTaskModal(taskId);
         }
 
-        function deleteTask(taskId) {
+        async function deleteTask(taskId) {
             if (confirm('确定要删除这个任务吗？')) {
-                tasks = tasks.filter(t => t.id !== taskId);
-                localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
-                renderTasks();
-                updateStats();
+                try {
+                    // 先调用后端API删除数据库中的数据
+                    const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    // 无论后端是否成功，都更新本地数据
+                    tasks = tasks.filter(t => t.id !== taskId);
+                    localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
+                    renderTasks();
+                    updateStats();
+                    
+                    if (!result.success) {
+                        alert('本地删除成功，但后端删除失败: ' + (result.message || '未知错误'));
+                    }
+                } catch (error) {
+                    // 如果API调用失败，至少删除本地数据
+                    tasks = tasks.filter(t => t.id !== taskId);
+                    localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
+                    renderTasks();
+                    updateStats();
+                    alert('本地删除成功，但后端删除失败: ' + error.message);
+                }
             }
         }
 
@@ -1495,12 +1515,32 @@
             openPrizeModal(prizeId);
         }
 
-        function deletePrize(prizeId) {
+        async function deletePrize(prizeId) {
             if (confirm('确定要删除这个奖品吗？')) {
-                prizes = prizes.filter(p => p.id !== prizeId);
-                localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
-                renderPrizes();
-                updateStats();
+                try {
+                    // 先调用后端API删除数据库中的数据
+                    const response = await fetch(`${API_BASE}/prizes/${prizeId}`, {
+                        method: 'DELETE'
+                    });
+                    const result = await response.json();
+                    
+                    // 无论后端是否成功，都更新本地数据
+                    prizes = prizes.filter(p => p.id !== prizeId);
+                    localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
+                    renderPrizes();
+                    updateStats();
+                    
+                    if (!result.success) {
+                        alert('本地删除成功，但后端删除失败: ' + (result.message || '未知错误'));
+                    }
+                } catch (error) {
+                    // 如果API调用失败，至少删除本地数据
+                    prizes = prizes.filter(p => p.id !== prizeId);
+                    localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
+                    renderPrizes();
+                    updateStats();
+                    alert('本地删除成功，但后端删除失败: ' + error.message);
+                }
             }
         }
 
