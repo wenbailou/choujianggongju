@@ -850,7 +850,10 @@
                     }));
                 }
                 if (prizesResult.success && prizesResult.data.length > 0) {
-                    prizes = prizesResult.data;
+                    prizes = prizesResult.data.map(prize => ({
+                        ...prize,
+                        desc: prize.description || prize.desc
+                    }));
                 }
                 if (recordsResult.success && recordsResult.data.length > 0) {
                     records = recordsResult.data.map(record => ({
@@ -1415,25 +1418,32 @@
                 return;
             }
 
+            const prizeData = {
+                name, icon, probability, stock, description: desc, status: 'active'
+            };
+
             if (editingPrizeId) {
-                const index = prizes.findIndex(p => p.id === editingPrizeId);
-                prizes[index] = {
-                    ...prizes[index],
-                    name, icon, probability, stock, desc
-                };
-            } else {
-                const newPrize = {
-                    id: Date.now(),
-                    name, icon, probability, stock, desc,
-                    status: 'active'
-                };
-                prizes.push(newPrize);
+                prizeData.id = editingPrizeId;
             }
 
-            localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
-            closeModal('prize-modal');
-            renderPrizes();
-            updateStats();
+            fetch(`${API_BASE}/prizes`, {
+                method: editingPrizeId ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(prizeData)
+            }).then(res => res.json()).then(async result => {
+                if (result.success) {
+                    // 重新加载数据
+                    await loadDataFromAPI();
+                    localStorage.setItem('lotteryPrizes', JSON.stringify(prizes));
+                    closeModal('prize-modal');
+                    renderPrizes();
+                    updateStats();
+                } else {
+                    alert('保存失败');
+                }
+            }).catch(() => {
+                alert('保存失败');
+            });
         }
 
         function editPrize(prizeId) {
