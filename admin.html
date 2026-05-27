@@ -1252,7 +1252,10 @@
             'gem': '💎',
             'medal': '🥇',
             'gift-box': '🎁',
-            'sparkles': '✨'
+            'sparkles': '✨',
+            'phone': '📱',
+            'ticket': '🎫',
+            'smile': '😊'
         };
         
         function getEmoji(icon) {
@@ -1261,6 +1264,23 @@
             if (emojiMap[icon]) return emojiMap[icon];
             // 如果已经是 emoji，直接返回
             return icon;
+        }
+        
+        // 编码 emoji 为 Unicode 转义序列，避免数据库存储问题
+        function encodeEmoji(text) {
+            if (!text) return text;
+            return text.replace(/[\u{10000}-\u{10FFFF}]/gu, (char) => {
+                const code = char.codePointAt(0);
+                return `\\u{${code.toString(16)}}`;
+            });
+        }
+        
+        // 解码 Unicode 转义序列为 emoji
+        function decodeEmoji(text) {
+            if (!text) return text;
+            return text.replace(/\\u\{([0-9a-fA-F]+)\}/g, (match, code) => {
+                return String.fromCodePoint(parseInt(code, 16));
+            });
         }
 
         function downloadQRCode() {
@@ -1409,7 +1429,13 @@
             modal.classList.add('show');
         }
 
+        let isSavingPrize = false; // 防止重复提交
+
         function savePrize() {
+            if (isSavingPrize) {
+                return; // 正在保存中，忽略重复点击
+            }
+            
             const name = document.getElementById('prize-name').value.trim();
             const icon = document.getElementById('prize-icon').value.trim();
             const probability = parseFloat(document.getElementById('prize-probability').value);
@@ -1441,11 +1467,14 @@
                 prizeData.id = editingPrizeId;
             }
 
+            isSavingPrize = true; // 标记正在保存
+            
             fetch(`${API_BASE}/prizes${editingPrizeId ? '/' + editingPrizeId : ''}`, {
                 method: editingPrizeId ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(prizeData)
             }).then(res => res.json()).then(async result => {
+                isSavingPrize = false; // 重置标记
                 if (result.success) {
                     // 重新加载数据（不管data是否为null，只要success为true就认为成功）
                     await loadDataFromAPI();
@@ -1457,6 +1486,7 @@
                     alert('保存失败: ' + (result.message || '未知错误'));
                 }
             }).catch(error => {
+                isSavingPrize = false; // 重置标记
                 alert('保存失败: ' + error.message);
             });
         }
