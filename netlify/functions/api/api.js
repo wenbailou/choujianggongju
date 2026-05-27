@@ -77,7 +77,8 @@ exports.handler = async (event, context) => {
             return jsonResponse(200, { 
                 success: true, 
                 message: 'Server is running!',
-                usingDatabase: !!supabase
+                usingDatabase: !!supabase,
+                version: '2026-05-27-fix'
             });
         }
 
