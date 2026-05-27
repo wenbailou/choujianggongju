@@ -1419,7 +1419,7 @@
                 prizeData.id = editingPrizeId;
             }
 
-            fetch(`${API_BASE}/prizes`, {
+            fetch(`${API_BASE}/prizes${editingPrizeId ? '/' + editingPrizeId : ''}`, {
                 method: editingPrizeId ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(prizeData)
