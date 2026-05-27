@@ -869,10 +869,15 @@
                         prizeIds: task.prize_ids || task.prizeIds || []
                     }));
                     
+                    console.log('Loaded tasks:', tasks);
+                    console.log('URL taskId:', urlTaskId, typeof urlTaskId);
+                    
                     // 优先根据URL参数查找任务
                     if (urlTaskId) {
                         const taskId = parseInt(urlTaskId);
+                        console.log('Parsed taskId:', taskId, typeof taskId);
                         const targetTask = tasks.find(t => t.id === taskId);
+                        console.log('Found task:', targetTask);
 
                         if (targetTask) {
                             currentTask = targetTask;
