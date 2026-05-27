@@ -3,8 +3,10 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL || process.env.SUPABASE_DATABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+console.log('=== API Server Starting ===');
 console.log('Supabase URL:', supabaseUrl ? 'configured' : 'not configured');
 console.log('Supabase Key:', supabaseKey ? 'configured' : 'not configured');
+console.log('Version: 2026-05-27-fix');
 
 let supabase = null;
 
