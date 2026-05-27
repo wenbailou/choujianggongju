@@ -25,7 +25,11 @@ exports.handler = async (event, context) => {
     }
 
     const { path, httpMethod, body } = event;
-    const pathParts = path.split('/').filter(p => p);
+    let pathParts = path.split('/').filter(p => p);
+    
+    if (pathParts[0] === 'api') {
+        pathParts = pathParts.slice(1);
+    }
     
     try {
         if (pathParts[0] === 'health') {
