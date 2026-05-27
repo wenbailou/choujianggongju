@@ -726,8 +726,12 @@
 
     <div class="main-container">
         <div class="header">
-            <h1 class="title" id="task-title">幸运大抽奖</h1>
-            <p class="subtitle" id="task-subtitle">最高赢取 999元 现金大奖</p>
+            <div id="loading-indicator" style="text-align: center; padding: 20px;">
+                <div style="width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
+                <p style="color: white;">加载中...</p>
+            </div>
+            <h1 class="title" id="task-title" style="display: none;">幸运大抽奖</h1>
+            <p class="subtitle" id="task-subtitle" style="display: none;">最高赢取 999元 现金大奖</p>
             <div class="task-selector" id="task-selector" style="display: none; margin-top: 15px;">
                 <select id="task-select" style="padding: 10px 16px; border-radius: 10px; border: 2px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.15); color: white; font-size: 14px; backdrop-filter: blur(10px);">
                 </select>
@@ -868,6 +872,15 @@
             if (emojiMap[icon]) return emojiMap[icon];
             return icon;
         }
+        
+        // 显示任务标题并隐藏加载指示器
+        function showTaskTitle(title, subtitle) {
+            document.getElementById('loading-indicator').style.display = 'none';
+            document.getElementById('task-title').textContent = title;
+            document.getElementById('task-title').style.display = 'block';
+            document.getElementById('task-subtitle').textContent = subtitle;
+            document.getElementById('task-subtitle').style.display = 'block';
+        }
 
         function getUrlParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -904,15 +917,13 @@
 
                         if (targetTask) {
                             currentTask = targetTask;
-                            document.getElementById('task-title').textContent = currentTask.name;
-                            document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
+                            showTaskTitle(currentTask.name, currentTask.description || '参与抽奖赢取大奖');
                             await loadPrizesForTask(currentTask);
                             selector.style.display = 'none';
                             return;
                         } else {
                             // 任务不存在，显示错误提示
-                            document.getElementById('task-title').textContent = '活动不存在或已结束';
-                            document.getElementById('task-subtitle').textContent = '请检查二维码是否正确';
+                            showTaskTitle('活动不存在或已结束', '请检查二维码是否正确');
                             selector.style.display = 'none';
                             return;
                         }
@@ -920,8 +931,7 @@
                     
                     // 使用第一个任务
                     currentTask = tasks[0];
-                    document.getElementById('task-title').textContent = currentTask.name;
-                    document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
+                    showTaskTitle(currentTask.name, currentTask.description || '参与抽奖赢取大奖');
                     await loadPrizesForTask(currentTask);
                     selector.style.display = 'none';
                     return;
@@ -942,14 +952,12 @@
 
                 if (targetTask) {
                     currentTask = targetTask;
-                    document.getElementById('task-title').textContent = currentTask.name;
-                    document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
+                    showTaskTitle(currentTask.name, currentTask.description || '参与抽奖赢取大奖');
                     loadPrizesForTask(currentTask);
                     selector.style.display = 'none';
                     return;
                 } else {
-                    document.getElementById('task-title').textContent = '活动不存在或已结束';
-                    document.getElementById('task-subtitle').textContent = '请检查二维码是否正确';
+                    showTaskTitle('活动不存在或已结束', '请检查二维码是否正确');
                     selector.style.display = 'none';
                     return;
                 }
@@ -957,8 +965,7 @@
             
             if (tasks.length > 0) {
                 currentTask = tasks[0];
-                document.getElementById('task-title').textContent = currentTask.name;
-                document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
+                showTaskTitle(currentTask.name, currentTask.description || '参与抽奖赢取大奖');
                 loadPrizesForTask(currentTask);
                 selector.style.display = 'none';
             } else {
@@ -968,8 +975,7 @@
                     desc: '参与抽奖赢取大奖',
                     prizeIds: []
                 };
-                document.getElementById('task-title').textContent = currentTask.name;
-                document.getElementById('task-subtitle').textContent = currentTask.desc;
+                showTaskTitle(currentTask.name, currentTask.desc);
                 loadDefaultPrizes();
             }
         }
