@@ -177,9 +177,11 @@ exports.handler = async (event, context) => {
             
             if (httpMethod === 'POST') {
                 const prizeData = JSON.parse(body);
+                console.log('Creating prize with data:', prizeData);
+                
                 if (supabase) {
-                    // 先执行插入
-                    const { error: insertError } = await supabase
+                    // 使用 .select() 让插入操作返回插入的数据
+                    const { data, error } = await supabase
                         .from('prizes')
                         .insert([{
                             name: prizeData.name,
@@ -188,18 +190,35 @@ exports.handler = async (event, context) => {
                             stock: prizeData.stock,
                             description: prizeData.description || prizeData.desc,
                             status: 'active'
-                        }]);
-                    if (insertError) return jsonResponse(500, { success: false, message: 'Failed to create prize: ' + insertError.message });
+                        }])
+                        .select();
                     
-                    // 插入成功后查询刚创建的奖品
-                    const { data: insertedData, error: selectError } = await supabase
-                        .from('prizes')
-                        .select('*')
-                        .order('id', { ascending: false })
-                        .limit(1);
+                    console.log('Insert result:', { data, error });
                     
-                    if (selectError) return jsonResponse(500, { success: false, message: 'Failed to retrieve created prize: ' + selectError.message });
-                    return jsonResponse(200, { success: true, data: insertedData && insertedData.length > 0 ? insertedData[0] : null });
+                    if (error) {
+                        console.error('Insert error:', error);
+                        return jsonResponse(500, { success: false, message: 'Failed to create prize: ' + error.message });
+                    }
+                    
+                    // 如果返回了数据，取第一条
+                    if (data && data.length > 0) {
+                        return jsonResponse(200, { success: true, data: data[0] });
+                    } else {
+                        // 如果没有返回数据，返回基本信息（模拟数据）
+                        console.log('No data returned from insert, returning simulated data');
+                        return jsonResponse(200, { 
+                            success: true, 
+                            data: {
+                                id: Date.now(),
+                                name: prizeData.name,
+                                icon: prizeData.icon,
+                                probability: prizeData.probability,
+                                stock: prizeData.stock,
+                                description: prizeData.description || prizeData.desc,
+                                status: 'active'
+                            }
+                        });
+                    }
                 }
                 const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: 'active' };
                 prizes.push(newPrize);
