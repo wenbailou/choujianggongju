@@ -371,7 +371,7 @@ exports.handler = async (event, context) => {
         
         if (pathParts[0] === 'daily-count') {
             if (httpMethod === 'GET') {
-                const phone = queryParams.get('phone');
+                const phone = event.queryStringParameters && event.queryStringParameters.phone;
                 if (!phone) return jsonResponse(400, { success: false, message: 'Phone number is required' });
                 
                 const today = new Date().toISOString().split('T')[0];
