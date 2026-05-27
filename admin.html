@@ -845,14 +845,18 @@
                         desc: task.description,
                         startDate: task.start_date || task.startDate,
                         endDate: task.end_date || task.endDate,
-                        prizeIds: task.prize_ids || task.prizeIds || []
+                        prizeIds: task.prize_ids || task.prizeIds || [],
+                        createdAt: task.created_at || task.createdAt
                     }));
                 }
                 if (prizesResult.success && prizesResult.data.length > 0) {
                     prizes = prizesResult.data;
                 }
                 if (recordsResult.success && recordsResult.data.length > 0) {
-                    records = recordsResult.data;
+                    records = recordsResult.data.map(record => ({
+                        ...record,
+                        createdAt: record.created_at || record.createdAt
+                    }));
                 }
                 
                 console.log('数据已从后端加载');
