@@ -188,9 +188,9 @@ exports.handler = async (event, context) => {
                             description: prizeData.description || prizeData.desc,
                             status: 'active'
                         }])
-                        .single();
-                    if (error) return jsonResponse(500, { success: false, message: 'Failed to create prize' });
-                    return jsonResponse(200, { success: true, data });
+                        .select();
+                    if (error) return jsonResponse(500, { success: false, message: 'Failed to create prize: ' + error.message });
+                    return jsonResponse(200, { success: true, data: data && data.length > 0 ? data[0] : null });
                 }
                 const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: 'active' };
                 prizes.push(newPrize);

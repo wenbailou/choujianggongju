@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试工具</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .result { margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; }
+        pre { white-space: pre-wrap; word-break: break-all; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🎁 奖品API测试工具</h1>
+    
+    <div class="test-section">
+        <h2>1. 创建测试奖品</h2>
+        <button onclick="testCreatePrize()">创建测试奖品</button>
+        <div class="result" id="create-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 查询所有奖品</h2>
+        <button onclick="testGetPrizes()">查询奖品列表</button>
+        <div class="result" id="get-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 测试数据</h2>
+        <pre>{
+  "name": "测试奖品",
+  "icon": "🎁",
+  "probability": 10.5,
+  "stock": 100,
+  "description": "这是一个测试奖品",
+  "status": "active"
+}</pre>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        
+        async function testCreatePrize() {
+            const resultDiv = document.getElementById('create-result');
+            resultDiv.innerHTML = '正在创建...';
+            
+            const testPrize = {
+                name: '测试奖品',
+                icon: '🎁',
+                probability: 10.5,
+                stock: 100,
+                description: '这是一个测试奖品',
+                status: 'active'
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/prizes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testPrize)
+                });
+                
+                const result = await response.json();
+                console.log('Response:', result);
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 创建成功！</p>
+                        <pre>奖品ID: ${result.data.id}<br>响应数据: ${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 创建失败！</p>
+                        <pre>错误信息: ${result.message || '未知错误'}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 请求失败！</p>
+                    <pre>错误: ${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testGetPrizes() {
+            const resultDiv = document.getElementById('get-result');
+            resultDiv.innerHTML = '正在查询...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/prizes`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ 查询成功！</p>
+                        <pre>奖品数量: ${result.data.length}<br>数据: ${JSON.stringify(result.data, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p class="error">❌ 查询失败！</p>
+                        <pre>错误信息: ${result.message}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ 请求失败！</p>
+                    <pre>错误: ${error.message}</pre>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
