@@ -33,7 +33,16 @@ exports.handler = async (event, context) => {
     try {
         if (pathParts[0] === 'health') {
             if (!supabase) {
-                return jsonResponse(500, { success: false, message: 'Database not configured' });
+                return jsonResponse(500, { 
+                    success: false, 
+                    message: 'Database not configured',
+                    debug: {
+                        hasSupabaseUrl: !!process.env.SUPABASE_URL,
+                        hasSupabaseDatabaseUrl: !!process.env.SUPABASE_DATABASE_URL,
+                        hasSupabaseKey: !!process.env.SUPABASE_KEY,
+                        hasSupabaseAnonKey: !!process.env.SUPABASE_ANON_KEY
+                    }
+                });
             }
             return jsonResponse(200, { success: true, message: 'Server is running!' });
         }
