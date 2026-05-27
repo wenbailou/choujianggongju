@@ -840,7 +840,13 @@
                 const recordsResult = await recordsRes.json();
                 
                 if (tasksResult.success && tasksResult.data.length > 0) {
-                    tasks = tasksResult.data;
+                    tasks = tasksResult.data.map(task => ({
+                        ...task,
+                        desc: task.description,
+                        startDate: task.start_date || task.startDate,
+                        endDate: task.end_date || task.endDate,
+                        prizeIds: task.prize_ids || task.prizeIds || []
+                    }));
                 }
                 if (prizesResult.success && prizesResult.data.length > 0) {
                     prizes = prizesResult.data;
@@ -1237,7 +1243,7 @@
                 const task = tasks.find(t => t.id === taskId);
                 document.getElementById('task-modal-title').textContent = '编辑抽奖任务';
                 document.getElementById('task-name').value = task.name;
-                document.getElementById('task-desc').value = task.desc;
+                document.getElementById('task-desc').value = task.description;
                 document.getElementById('task-start').value = task.startDate;
                 document.getElementById('task-end').value = task.endDate;
             } else {

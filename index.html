@@ -862,7 +862,12 @@
                 const result = await response.json();
                 
                 if (result.success && result.data.length > 0) {
-                    tasks = result.data.filter(t => t.status === 'active');
+                    tasks = result.data.filter(t => t.status === 'active').map(task => ({
+                        ...task,
+                        startDate: task.start_date || task.startDate,
+                        endDate: task.end_date || task.endDate,
+                        prizeIds: task.prize_ids || task.prizeIds || []
+                    }));
                     
                     // 优先根据URL参数查找任务
                     if (urlTaskId) {
@@ -872,7 +877,7 @@
                         if (targetTask) {
                             currentTask = targetTask;
                             document.getElementById('task-title').textContent = currentTask.name;
-                            document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                            document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
                             await loadPrizesForTask(currentTask);
                             selector.style.display = 'none';
                             return;
@@ -888,7 +893,7 @@
                     // 使用第一个任务
                     currentTask = tasks[0];
                     document.getElementById('task-title').textContent = currentTask.name;
-                    document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                    document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
                     await loadPrizesForTask(currentTask);
                     selector.style.display = 'none';
                     return;
@@ -910,7 +915,7 @@
                 if (targetTask) {
                     currentTask = targetTask;
                     document.getElementById('task-title').textContent = currentTask.name;
-                    document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                    document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
                     loadPrizesForTask(currentTask);
                     selector.style.display = 'none';
                     return;
@@ -925,7 +930,7 @@
             if (tasks.length > 0) {
                 currentTask = tasks[0];
                 document.getElementById('task-title').textContent = currentTask.name;
-                document.getElementById('task-subtitle').textContent = currentTask.desc || '参与抽奖赢取大奖';
+                document.getElementById('task-subtitle').textContent = currentTask.description || '参与抽奖赢取大奖';
                 loadPrizesForTask(currentTask);
                 selector.style.display = 'none';
             } else {
