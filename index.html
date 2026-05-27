@@ -1109,11 +1109,7 @@
             const phone = localStorage.getItem('lotteryPhone');
             if (phone) {
                 try {
-                    const response = await fetch(`${API_BASE}/daily-count`, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ phone })
-                    });
+                    const response = await fetch(`${API_BASE}/daily-count?phone=${encodeURIComponent(phone)}`);
                     const result = await response.json();
                     if (result.success && result.data) {
                         todayCount = result.data.count || 0;

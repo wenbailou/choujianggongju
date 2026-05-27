@@ -371,7 +371,7 @@ exports.handler = async (event, context) => {
         
         if (pathParts[0] === 'daily-count') {
             if (httpMethod === 'GET') {
-                const { phone } = JSON.parse(body || '{}');
+                const phone = queryParams.get('phone');
                 if (!phone) return jsonResponse(400, { success: false, message: 'Phone number is required' });
                 
                 const today = new Date().toISOString().split('T')[0];
@@ -399,7 +399,6 @@ exports.handler = async (event, context) => {
                 const today = new Date().toISOString().split('T')[0];
                 
                 if (supabase) {
-                    // 先查询今日记录
                     const { data: existing, error: selectError } = await supabase
                         .from('daily_counts')
                         .select('*')
@@ -408,14 +407,12 @@ exports.handler = async (event, context) => {
                         .single();
                     
                     if (existing) {
-                        // 更新计数
                         const { error } = await supabase
                             .from('daily_counts')
                             .update({ count: existing.count + 1 })
                             .eq('id', existing.id);
                         if (error) return jsonResponse(500, { success: false, message: 'Failed to update count' });
                     } else {
-                        // 插入新记录
                         const { error } = await supabase
                             .from('daily_counts')
                             .insert([{ phone, date: today, count: 1 }]);
