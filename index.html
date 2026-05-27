@@ -845,6 +845,29 @@
         
         // 后端API地址（使用相对路径，部署后自动适配域名）
         const API_BASE = '/api';
+        
+        // emoji 别名映射 - 用于解决数据库编码问题
+        const emojiMap = {
+            'gift': '🎁',
+            'star': '⭐',
+            'crown': '👑',
+            'heart': '❤️',
+            'money': '💰',
+            'trophy': '🏆',
+            'gem': '💎',
+            'medal': '🥇',
+            'gift-box': '🎁',
+            'sparkles': '✨',
+            'phone': '📱',
+            'ticket': '🎫',
+            'smile': '😊'
+        };
+        
+        function getEmoji(icon) {
+            if (!icon) return '🎁';
+            if (emojiMap[icon]) return emojiMap[icon];
+            return icon;
+        }
 
         function getUrlParam(name) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -1039,7 +1062,7 @@
                 preview.style.display = 'block';
                 list.innerHTML = prizes.map(p => `
                     <div style="background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 18px;">${p.icon}</span>
+                        <span style="font-size: 18px;">${getEmoji(p.icon)}</span>
                         <div>
                             <div style="color: white; font-size: 12px; font-weight: 600;">${p.name}</div>
                         </div>
@@ -1281,7 +1304,7 @@
                 saveDailyCount();
                 saveRecord(prize);
 
-                document.getElementById('result-icon').textContent = prize.icon;
+                document.getElementById('result-icon').textContent = getEmoji(prize.icon);
                 document.getElementById('result-title').textContent = prize.title;
                 document.getElementById('result-prize').textContent = prize.name;
                 document.getElementById('result-overlay').classList.add('show');

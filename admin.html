@@ -1014,7 +1014,7 @@
             tbody.innerHTML = prizes.map(prize => `
                 <tr>
                     <td>${prize.name}</td>
-                    <td style="font-size: 20px;">${prize.icon}</td>
+                    <td style="font-size: 20px;">${getEmoji(prize.icon)}</td>
                     <td>${prize.probability}%</td>
                     <td>${prize.stock}</td>
                     <td><span class="badge ${prize.status === 'active' ? 'badge-active' : 'badge-inactive'}">${prize.status === 'active' ? '启用' : '禁用'}</span></td>
@@ -1239,6 +1239,28 @@
                 minute: '2-digit',
                 second: '2-digit'
             }).replace(/\//g, '-');
+        }
+        
+        // emoji 别名映射 - 用于解决数据库编码问题
+        const emojiMap = {
+            'gift': '🎁',
+            'star': '⭐',
+            'crown': '👑',
+            'heart': '❤️',
+            'money': '💰',
+            'trophy': '🏆',
+            'gem': '💎',
+            'medal': '🥇',
+            'gift-box': '🎁',
+            'sparkles': '✨'
+        };
+        
+        function getEmoji(icon) {
+            if (!icon) return '🎁';
+            // 如果是别名，转换为对应的 emoji
+            if (emojiMap[icon]) return emojiMap[icon];
+            // 如果已经是 emoji，直接返回
+            return icon;
         }
 
         function downloadQRCode() {
