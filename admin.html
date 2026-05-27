@@ -1308,62 +1308,46 @@
                 return;
             }
 
-            let savedTask;
-            if (editingTaskId) {
-                const index = tasks.findIndex(t => t.id === editingTaskId);
-                tasks[index] = {
-                    ...tasks[index],
-                    name, desc, startDate, endDate, prizeIds
-                };
-                savedTask = tasks[index];
-                
-                // 尝试保存到后端
-                try {
+            const taskData = {
+                name,
+                description: desc,
+                startDate,
+                endDate,
+                prizeIds: prizeIds || []
+            };
+
+            try {
+                if (editingTaskId) {
+                    // 更新任务
                     await fetch(`${API_BASE}/tasks/${editingTaskId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(savedTask)
+                        body: JSON.stringify(taskData)
                     });
-                } catch (error) {
-                    console.error('保存任务到后端失败:', error);
-                }
-            } else {
-                savedTask = {
-                    id: Date.now(),
-                    name, desc, startDate, endDate, prizeIds,
-                    status: 'active',
-                    createdAt: new Date().toISOString()
-                };
-                tasks.push(savedTask);
-                
-                // 尝试保存到后端
-                try {
+                } else {
+                    // 创建新任务 - 先保存到后端，成功后再更新本地
                     const response = await fetch(`${API_BASE}/tasks`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(savedTask)
+                        body: JSON.stringify(taskData)
                     });
                     const result = await response.json();
-                    console.log('Save task result:', result);
-                    if (result.success && result.data) {
-                        savedTask.id = result.data.id;
-                        tasks[tasks.length - 1].id = result.data.id;
-                    } else if (!result.success) {
-                        console.error('Failed to save task:', result.message);
-                        alert('保存任务到数据库失败: ' + (result.message || '未知错误'));
+                    if (!result.success) {
+                        alert('保存任务失败: ' + (result.message || '未知错误'));
+                        return;
                     }
-                } catch (error) {
-                    console.error('保存任务到后端失败:', error);
-                    alert('保存任务到数据库失败: ' + error.message);
                 }
-            }
 
-            localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
-            closeModal('task-modal');
-            // 从后端重新加载数据，确保ID正确
-            await loadDataFromAPI();
-            renderTasks();
-            updateStats();
+                closeModal('task-modal');
+                // 从后端重新加载数据，确保数据一致
+                await loadDataFromAPI();
+                localStorage.setItem('lotteryTasks', JSON.stringify(tasks));
+                renderTasks();
+                updateStats();
+            } catch (error) {
+                console.error('保存任务失败:', error);
+                alert('保存任务失败: ' + error.message);
+            }
         }
 
         function editTask(taskId) {
