@@ -3,10 +3,16 @@ const { createClient } = require('@supabase/supabase-js');
 const supabaseUrl = process.env.SUPABASE_URL || process.env.SUPABASE_DATABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+console.log('Supabase URL:', supabaseUrl ? 'configured' : 'not configured');
+console.log('Supabase Key:', supabaseKey ? 'configured' : 'not configured');
+
 let supabase = null;
 
 if (supabaseUrl && supabaseKey) {
     supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('Supabase client created successfully');
+} else {
+    console.log('Supabase client not created - missing URL or key');
 }
 
 let tasks = [];
@@ -84,6 +90,8 @@ exports.handler = async (event, context) => {
             
             if (httpMethod === 'POST') {
                 const taskData = JSON.parse(body);
+                console.log('Received task data:', taskData);
+                console.log('Supabase client:', supabase ? 'initialized' : 'not initialized');
                 if (supabase) {
                     const { data, error } = await supabase
                         .from('tasks')
@@ -97,7 +105,11 @@ exports.handler = async (event, context) => {
                             created_at: new Date().toISOString()
                         }])
                         .single();
-                    if (error) return jsonResponse(500, { success: false, message: 'Failed to create task' });
+                    console.log('Insert result:', { data, error });
+                    if (error) {
+                        console.error('Supabase insert error:', error);
+                        return jsonResponse(500, { success: false, message: 'Failed to create task: ' + error.message });
+                    }
                     return jsonResponse(200, { success: true, data });
                 }
                 const newTask = {
