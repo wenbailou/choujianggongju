@@ -1065,22 +1065,31 @@
             let todayCount = 0;
             
             if (dailyData) {
-                const parsed = JSON.parse(dailyData);
-                if (parsed.date === today) {
-                    todayCount = parsed.count;
+                try {
+                    const parsed = JSON.parse(dailyData);
+                    // 检查日期是否是今天，并且count是有效的数字
+                    if (parsed.date === today && typeof parsed.count === 'number' && parsed.count >= 0) {
+                        todayCount = parsed.count;
+                    } else {
+                        // 数据无效，清除缓存
+                        localStorage.removeItem('dailyLotteryData');
+                    }
+                } catch {
+                    // JSON解析失败，清除缓存
+                    localStorage.removeItem('dailyLotteryData');
                 }
             }
             
             const dailyLimit = loadDailyLimit();
             remainingCount = dailyLimit - todayCount;
             
-            // 如果计算后次数为负，重置为0
-            if (remainingCount < 0) {
-                remainingCount = 0;
+            // 确保次数在合理范围内
+            if (remainingCount < 0 || remainingCount > dailyLimit) {
+                remainingCount = dailyLimit;
+                localStorage.removeItem('dailyLotteryData');
             }
             
             document.getElementById('remaining-count').textContent = remainingCount;
-            console.log('Daily count check:', { today, todayCount, dailyLimit, remainingCount });
         }
 
         function saveDailyCount() {
