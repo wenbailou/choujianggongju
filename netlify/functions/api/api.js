@@ -178,7 +178,8 @@ exports.handler = async (event, context) => {
             if (httpMethod === 'POST') {
                 const prizeData = JSON.parse(body);
                 if (supabase) {
-                    const { data, error } = await supabase
+                    // 先执行插入
+                    const { error: insertError } = await supabase
                         .from('prizes')
                         .insert([{
                             name: prizeData.name,
@@ -187,10 +188,19 @@ exports.handler = async (event, context) => {
                             stock: prizeData.stock,
                             description: prizeData.description || prizeData.desc,
                             status: 'active'
-                        }])
-                        .select();
-                    if (error) return jsonResponse(500, { success: false, message: 'Failed to create prize: ' + error.message });
-                    return jsonResponse(200, { success: true, data: data && data.length > 0 ? data[0] : null });
+                        }]);
+                    if (insertError) return jsonResponse(500, { success: false, message: 'Failed to create prize: ' + insertError.message });
+                    
+                    // 插入成功后查询刚创建的奖品
+                    const { data: insertedData, error: selectError } = await supabase
+                        .from('prizes')
+                        .select('*')
+                        .order('id', { ascending: false })
+                        .limit(1)
+                        .single();
+                    
+                    if (selectError) return jsonResponse(500, { success: false, message: 'Failed to retrieve created prize: ' + selectError.message });
+                    return jsonResponse(200, { success: true, data: insertedData });
                 }
                 const newPrize = { id: prizeIdCounter++, name: prizeData.name, icon: prizeData.icon, probability: prizeData.probability, stock: prizeData.stock, description: prizeData.description || prizeData.desc, status: 'active' };
                 prizes.push(newPrize);
