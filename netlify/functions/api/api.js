@@ -83,6 +83,7 @@ exports.handler = async (event, context) => {
             if (httpMethod === 'GET') {
                 if (supabase) {
                     const dbTasks = await getTasksFromDB();
+                    console.log('Tasks from database:', dbTasks);
                     return jsonResponse(200, { success: true, data: dbTasks });
                 }
                 return jsonResponse(200, { success: true, data: tasks });
