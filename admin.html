@@ -855,7 +855,9 @@
                 if (recordsResult.success && recordsResult.data.length > 0) {
                     records = recordsResult.data.map(record => ({
                         ...record,
-                        createdAt: record.created_at || record.createdAt
+                        createdAt: record.created_at || record.createdAt,
+                        taskId: record.task_id || record.taskId,
+                        taskName: record.task_name || record.taskName
                     }));
                 }
                 
