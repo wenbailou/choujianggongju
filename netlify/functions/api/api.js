@@ -354,14 +354,33 @@ exports.handler = async (event, context) => {
             
             if (httpMethod === 'POST' || httpMethod === 'PUT') {
                 const settingsData = JSON.parse(body);
+                console.log('Received settings data:', settingsData);
+                
                 if (supabase) {
                     const { data: existing, error: selectError } = await supabase.from('settings').select('*').single();
+                    console.log('Existing settings:', existing, 'Select error:', selectError);
+                    
                     if (existing) {
                         const { error } = await supabase.from('settings').update(settingsData).eq('id', existing.id);
-                        if (error) return jsonResponse(500, { success: false, message: 'Failed to update settings' });
+                        console.log('Update result - error:', error);
+                        if (error) {
+                            console.error('Update settings error:', error);
+                            return jsonResponse(500, { success: false, message: 'Failed to update settings: ' + error.message });
+                        }
                     } else {
-                        const { error } = await supabase.from('settings').insert([settingsData]);
-                        if (error) return jsonResponse(500, { success: false, message: 'Failed to create settings' });
+                        // 确保有正确的字段结构
+                        const insertData = {
+                            dailyLimit: settingsData.dailyLimit || 3,
+                            created_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString()
+                        };
+                        console.log('Inserting settings:', insertData);
+                        const { error } = await supabase.from('settings').insert([insertData]);
+                        console.log('Insert result - error:', error);
+                        if (error) {
+                            console.error('Create settings error:', error);
+                            return jsonResponse(500, { success: false, message: 'Failed to create settings: ' + error.message });
+                        }
                     }
                     return jsonResponse(200, { success: true, data: settingsData });
                 }
