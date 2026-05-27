@@ -352,7 +352,7 @@ exports.handler = async (event, context) => {
                 return jsonResponse(200, { success: true, data: { dailyLimit: 3 } });
             }
             
-            if (httpMethod === 'POST') {
+            if (httpMethod === 'POST' || httpMethod === 'PUT') {
                 const settingsData = JSON.parse(body);
                 if (supabase) {
                     const { data: existing, error: selectError } = await supabase.from('settings').select('*').single();
