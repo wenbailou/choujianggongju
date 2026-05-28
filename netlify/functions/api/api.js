@@ -278,6 +278,25 @@ exports.handler = async (event, context) => {
             if (httpMethod === 'POST') {
                 const recordData = JSON.parse(body);
                 const recordBeijingTime = getBeijingTime();
+                
+                // 检查任务是否在有效期内
+                if (recordData.taskId && supabase) {
+                    const { data: task } = await supabase
+                        .from('tasks')
+                        .select('*')
+                        .eq('id', recordData.taskId)
+                        .single();
+                    
+                    if (task) {
+                        if (task.start_date && new Date(recordBeijingTime) < new Date(task.start_date)) {
+                            return jsonResponse(400, { success: false, message: '活动还未开始！' });
+                        }
+                        if (task.end_date && new Date(recordBeijingTime) > new Date(task.end_date)) {
+                            return jsonResponse(400, { success: false, message: '活动已结束！' });
+                        }
+                    }
+                }
+                
                 if (supabase) {
                     const { data, error } = await supabase
                         .from('records')

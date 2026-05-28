@@ -1315,8 +1315,37 @@
             document.getElementById('user-info').classList.add('show');
         });
 
+        // 检查任务是否在有效期内
+        function isTaskValid(task) {
+            if (!task) return false;
+            
+            const now = new Date();
+            const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+            const beijingNow = new Date(utc + 8 * 3600000);
+            
+            const startDate = task.startDate ? new Date(task.startDate) : null;
+            const endDate = task.endDate ? new Date(task.endDate) : null;
+            
+            if (startDate && beijingNow < startDate) {
+                return { valid: false, message: '活动还未开始！' };
+            }
+            
+            if (endDate && beijingNow > endDate) {
+                return { valid: false, message: '活动已结束！' };
+            }
+            
+            return { valid: true };
+        }
+
         document.getElementById('spin-btn').addEventListener('click', async function() {
             if (isSpinning) return;
+            
+            const taskValidation = isTaskValid(currentTask);
+            if (!taskValidation.valid) {
+                alert(taskValidation.message);
+                return;
+            }
+            
             if (remainingCount <= 0) {
                 alert('抽奖次数已用完！');
                 return;
