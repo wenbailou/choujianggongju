@@ -170,6 +170,12 @@ exports.handler = async (event, context) => {
                 console.log('Deleting task with id:', taskId, 'from path:', pathParts[1]);
                 
                 if (supabase) {
+                    // 先删除相关的抽奖记录（避免外键约束错误）
+                    console.log('Deleting related records for task:', taskId);
+                    const deleteRecordsResult = await supabase.from('records').delete().eq('task_id', taskId);
+                    console.log('Deleted records result:', deleteRecordsResult);
+                    
+                    // 然后删除任务
                     // 尝试用数字匹配，如果失败则尝试用字符串匹配
                     let { data, error } = await supabase.from('tasks').delete().eq('id', taskId);
                     
@@ -180,7 +186,7 @@ exports.handler = async (event, context) => {
                         data = strData;
                         error = strError;
                     }
-                    console.log('Delete result - data:', data, 'error:', error);
+                    console.log('Delete task result - data:', data, 'error:', error);
                     
                     if (error) {
                         console.error('Delete task error:', error);
