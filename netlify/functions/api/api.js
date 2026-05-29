@@ -108,7 +108,7 @@ exports.handler = async (event, context) => {
                 const newTask = {
                     id: Date.now(),
                     name: taskData.name,
-                    description: taskData.desc,
+                    description: taskData.description || taskData.desc,
                     start_date: taskData.startDate,
                     end_date: taskData.endDate,
                     prize_ids: taskData.prizeIds || [],
@@ -121,7 +121,7 @@ exports.handler = async (event, context) => {
                         .from('tasks')
                         .insert([{
                             name: taskData.name,
-                            description: taskData.desc,
+                            description: taskData.description || taskData.desc,
                             start_date: taskData.startDate,
                             end_date: taskData.endDate,
                             prize_ids: taskData.prizeIds || [],
@@ -148,7 +148,7 @@ exports.handler = async (event, context) => {
                         .from('tasks')
                         .update({
                             name: taskData.name,
-                            description: taskData.desc,
+                            description: taskData.description || taskData.desc,
                             start_date: taskData.startDate,
                             end_date: taskData.endDate,
                             prize_ids: taskData.prizeIds,
@@ -161,7 +161,7 @@ exports.handler = async (event, context) => {
                 }
                 const taskIndex = tasks.findIndex(t => t.id === taskId);
                 if (taskIndex === -1) return jsonResponse(404, { success: false, message: 'Task not found' });
-                tasks[taskIndex] = { ...tasks[taskIndex], name: taskData.name, description: taskData.desc, start_date: taskData.startDate, end_date: taskData.endDate, prize_ids: taskData.prizeIds, status: taskData.status };
+                tasks[taskIndex] = { ...tasks[taskIndex], name: taskData.name, description: taskData.description || taskData.desc, start_date: taskData.startDate, end_date: taskData.endDate, prize_ids: taskData.prizeIds, status: taskData.status };
                 return jsonResponse(200, { success: true, data: tasks[taskIndex] });
             }
             
