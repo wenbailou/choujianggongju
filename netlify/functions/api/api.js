@@ -408,43 +408,45 @@ exports.handler = async (event, context) => {
                 const settingsData = JSON.parse(body);
                 console.log('Received settings data:', settingsData);
                 
+                const dailyLimit = settingsData.dailyLimit !== undefined ? settingsData.dailyLimit : 3;
+                const settingsBeijingTime = getBeijingTime().toISOString();
+                
                 if (supabase) {
-                    const { data: existing, error: selectError } = await supabase.from('settings').select('*').single();
-                    console.log('Existing settings:', existing, 'Select error:', selectError);
+                    // 先尝试获取现有设置
+                    let existing = null;
+                    try {
+                        const { data } = await supabase.from('settings').select('id, dailyLimit').limit(1);
+                        if (data && data.length > 0) {
+                            existing = data[0];
+                        }
+                    } catch (e) {
+                        console.log('Error fetching existing settings:', e);
+                    }
+                    
+                    console.log('Existing settings:', existing);
                     
                     if (existing) {
-                        // 只更新 dailyLimit 字段（避免字段缓存问题）
-                        const updateData = {
-                            dailyLimit: settingsData.dailyLimit !== undefined ? settingsData.dailyLimit : existing.dailyLimit,
-                            updated_at: getBeijingTime().toISOString()
-                        };
-                        
-                        console.log('Updating settings with:', updateData);
-                        const { error } = await supabase.from('settings').update(updateData).eq('id', existing.id);
-                        console.log('Update result - error:', error);
-                        if (error) {
-                            console.error('Update settings error:', error);
-                            return jsonResponse(500, { success: false, message: 'Failed to update settings: ' + error.message });
+                        // 使用简单的更新操作
+                        try {
+                            await supabase.from('settings').update({ dailyLimit }).eq('id', existing.id);
+                            console.log('Settings updated successfully');
+                        } catch (updateError) {
+                            console.error('Update error:', updateError);
+                            return jsonResponse(500, { success: false, message: 'Failed to update settings: ' + updateError.message });
                         }
                     } else {
-                        // 确保有正确的字段结构（只使用必要字段）
-                        const settingsBeijingTime = getBeijingTime();
-                        const insertData = {
-                            dailyLimit: settingsData.dailyLimit || 3,
-                            created_at: settingsBeijingTime.toISOString(),
-                            updated_at: settingsBeijingTime.toISOString()
-                        };
-                        console.log('Inserting settings:', insertData);
-                        const { error } = await supabase.from('settings').insert([insertData]);
-                        console.log('Insert result - error:', error);
-                        if (error) {
-                            console.error('Create settings error:', error);
-                            return jsonResponse(500, { success: false, message: 'Failed to create settings: ' + error.message });
+                        // 使用简单的插入操作
+                        try {
+                            await supabase.from('settings').insert([{ dailyLimit }]);
+                            console.log('Settings inserted successfully');
+                        } catch (insertError) {
+                            console.error('Insert error:', insertError);
+                            return jsonResponse(500, { success: false, message: 'Failed to create settings: ' + insertError.message });
                         }
                     }
-                    return jsonResponse(200, { success: true, data: settingsData });
+                    return jsonResponse(200, { success: true, data: { dailyLimit } });
                 }
-                return jsonResponse(200, { success: true, data: settingsData });
+                return jsonResponse(200, { success: true, data: { dailyLimit } });
             }
         }
         
