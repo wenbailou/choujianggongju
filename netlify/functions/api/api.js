@@ -413,12 +413,11 @@ exports.handler = async (event, context) => {
                     console.log('Existing settings:', existing, 'Select error:', selectError);
                     
                     if (existing) {
-                        // 只更新存在的字段，避免未知字段错误
-                        const updateData = {};
-                        if (settingsData.dailyLimit !== undefined) updateData.dailyLimit = settingsData.dailyLimit;
-                        if (settingsData.adminUsername !== undefined) updateData.adminUsername = settingsData.adminUsername;
-                        if (settingsData.adminPassword !== undefined) updateData.adminPassword = settingsData.adminPassword;
-                        updateData.updated_at = getBeijingTime().toISOString();
+                        // 只更新 dailyLimit 字段（避免字段缓存问题）
+                        const updateData = {
+                            dailyLimit: settingsData.dailyLimit !== undefined ? settingsData.dailyLimit : existing.dailyLimit,
+                            updated_at: getBeijingTime().toISOString()
+                        };
                         
                         console.log('Updating settings with:', updateData);
                         const { error } = await supabase.from('settings').update(updateData).eq('id', existing.id);
@@ -428,12 +427,10 @@ exports.handler = async (event, context) => {
                             return jsonResponse(500, { success: false, message: 'Failed to update settings: ' + error.message });
                         }
                     } else {
-                        // 确保有正确的字段结构
+                        // 确保有正确的字段结构（只使用必要字段）
                         const settingsBeijingTime = getBeijingTime();
                         const insertData = {
                             dailyLimit: settingsData.dailyLimit || 3,
-                            adminUsername: settingsData.adminUsername || 'admin',
-                            adminPassword: settingsData.adminPassword || 'admin',
                             created_at: settingsBeijingTime.toISOString(),
                             updated_at: settingsBeijingTime.toISOString()
                         };
