@@ -413,7 +413,15 @@ exports.handler = async (event, context) => {
                     console.log('Existing settings:', existing, 'Select error:', selectError);
                     
                     if (existing) {
-                        const { error } = await supabase.from('settings').update(settingsData).eq('id', existing.id);
+                        // 只更新存在的字段，避免未知字段错误
+                        const updateData = {};
+                        if (settingsData.dailyLimit !== undefined) updateData.dailyLimit = settingsData.dailyLimit;
+                        if (settingsData.adminUsername !== undefined) updateData.adminUsername = settingsData.adminUsername;
+                        if (settingsData.adminPassword !== undefined) updateData.adminPassword = settingsData.adminPassword;
+                        updateData.updated_at = getBeijingTime().toISOString();
+                        
+                        console.log('Updating settings with:', updateData);
+                        const { error } = await supabase.from('settings').update(updateData).eq('id', existing.id);
                         console.log('Update result - error:', error);
                         if (error) {
                             console.error('Update settings error:', error);
@@ -424,6 +432,8 @@ exports.handler = async (event, context) => {
                         const settingsBeijingTime = getBeijingTime();
                         const insertData = {
                             dailyLimit: settingsData.dailyLimit || 3,
+                            adminUsername: settingsData.adminUsername || 'admin',
+                            adminPassword: settingsData.adminPassword || 'admin',
                             created_at: settingsBeijingTime.toISOString(),
                             updated_at: settingsBeijingTime.toISOString()
                         };

@@ -1710,7 +1710,7 @@
                 const response = await fetch(`${API_BASE}/settings`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dailyLimit })
+                    body: JSON.stringify({ dailyLimit, adminUsername: username, adminPassword: password })
                 });
                 const result = await response.json();
                 if (result.success) {
