@@ -395,11 +395,21 @@ exports.handler = async (event, context) => {
         if (pathParts[0] === 'settings') {
             if (httpMethod === 'GET') {
                 if (supabase) {
-                    const { data, error } = await supabase.from('settings').select('*').single();
-                    if (error || !data) {
+                    try {
+                        const { data, error } = await supabase.from('settings').select('*').single();
+                        console.log('Settings GET - data:', data, 'error:', error);
+                        if (error || !data) {
+                            return jsonResponse(200, { success: true, data: { dailyLimit: 3 } });
+                        }
+                        // 确保返回的数据结构正确，包含 dailyLimit 字段
+                        const responseData = {
+                            dailyLimit: data.dailyLimit !== undefined ? data.dailyLimit : 3
+                        };
+                        return jsonResponse(200, { success: true, data: responseData });
+                    } catch (e) {
+                        console.error('Settings GET error:', e);
                         return jsonResponse(200, { success: true, data: { dailyLimit: 3 } });
                     }
-                    return jsonResponse(200, { success: true, data });
                 }
                 return jsonResponse(200, { success: true, data: { dailyLimit: 3 } });
             }
