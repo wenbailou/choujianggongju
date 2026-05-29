@@ -167,10 +167,19 @@ exports.handler = async (event, context) => {
             
             if (httpMethod === 'DELETE' && pathParts[1]) {
                 const taskId = parseInt(pathParts[1]);
-                console.log('Deleting task with id:', taskId);
+                console.log('Deleting task with id:', taskId, 'from path:', pathParts[1]);
                 
                 if (supabase) {
-                    const { data, error } = await supabase.from('tasks').delete().eq('id', taskId);
+                    // 尝试用数字匹配，如果失败则尝试用字符串匹配
+                    let { data, error } = await supabase.from('tasks').delete().eq('id', taskId);
+                    
+                    // 如果数字匹配失败，尝试字符串匹配（处理数据库中ID为字符串的情况）
+                    if (error || (!data || data.length === 0)) {
+                        console.log('Trying string match for id:', pathParts[1]);
+                        const { data: strData, error: strError } = await supabase.from('tasks').delete().eq('id', pathParts[1]);
+                        data = strData;
+                        error = strError;
+                    }
                     console.log('Delete result - data:', data, 'error:', error);
                     
                     if (error) {
