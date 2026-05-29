@@ -167,9 +167,16 @@ exports.handler = async (event, context) => {
             
             if (httpMethod === 'DELETE' && pathParts[1]) {
                 const taskId = parseInt(pathParts[1]);
+                console.log('Deleting task with id:', taskId);
+                
                 if (supabase) {
                     const { data, error } = await supabase.from('tasks').delete().eq('id', taskId);
-                    if (error) return jsonResponse(500, { success: false, message: 'Failed to delete task' });
+                    console.log('Delete result - data:', data, 'error:', error);
+                    
+                    if (error) {
+                        console.error('Delete task error:', error);
+                        return jsonResponse(500, { success: false, message: 'Failed to delete task: ' + error.message });
+                    }
                     return jsonResponse(200, { success: true, message: 'Deleted successfully' });
                 }
                 const taskIndex = tasks.findIndex(t => t.id === taskId);
